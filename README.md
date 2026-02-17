@@ -36,3 +36,10 @@ La documentación completa del proyecto se encuentra en la carpeta `/docs`.
 cd backend
 npm install
 npm run dev
+
+### Frontend
+
+```bash
+cd backend
+npm install
+npm run dev
