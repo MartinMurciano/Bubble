@@ -1,0 +1,22 @@
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #eaeaea;
+  transition: 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.card-sub {
+  font-size: 14px;
+  color: #666;
+}
