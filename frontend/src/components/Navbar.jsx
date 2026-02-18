@@ -1,4 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import logo from "../assets/logo.webp"
+
 
 export default function Navbar() {
   const nav = useNavigate();
@@ -17,90 +19,73 @@ export default function Navbar() {
   const role = user?.rol || null; // ADMIN / ORGANIZADOR / CLIENTE
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-      <div className="container">
-
-        <Link className="navbar-brand fw-semibold" to="/">
-          Bubble
+    <nav className="navbar">
+      <div className="navbar-left">
+        <Link className="navbar-brand d-flex align-items-center" to="/">
+          <img
+            src={logo}
+            alt="Bubble Logo"
+            class="logo"
+          />
+          <span class="brand-text">Bubble</span>
         </Link>
-
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#nav"
-        >
-          <span className="navbar-toggler-icon" />
-        </button>
-
-        <div className="collapse navbar-collapse" id="nav">
-
-          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-
-            <li className="nav-item">
+      </div>
+      <div className="navbar-right d-flex align-items-center gap-3" id="nav">
+            <div className="nav-item">
               <NavLink className="nav-link" to="/">
                 Eventos
               </NavLink>
-            </li>
+            </div>
 
             {/* CLIENTE */}
             {token && role === "CLIENTE" && (
-              <li className="nav-item">
+              <div className="nav-item">
                 <NavLink className="nav-link" to="/orders">
                   Mis compras
                 </NavLink>
-              </li>
+              </div>
             )}
 
             {/* ORGANIZADOR */}
             {token && role === "ORGANIZADOR" && (
-              <li className="nav-item">
+              <div className="nav-item">
                 <NavLink className="nav-link" to="/organizer">
                   Panel Organizador
                 </NavLink>
-              </li>
+              </div>
             )}
 
             {/* ADMIN */}
             {token && role === "ADMIN" && (
-              <li className="nav-item">
+              <div className="nav-item">
                 <NavLink className="nav-link" to="/admin">
                   Admin
                 </NavLink>
-              </li>
+              </div>
             )}
 
-          </ul>
-
-          <div className="d-flex align-items-center gap-2">
-
             {!token ? (
-              <>
-                <NavLink className="btn btn-outline-primary btn-sm" to="/login">
+              <div className="d-flex align-items-center gap-3">
+                <NavLink className="nav-link p-0" to="/login">
                   Login
                 </NavLink>
-                <NavLink className="btn btn-primary btn-sm" to="/register">
+                <NavLink className="nav-link p-0" to="/register">
                   Registrarme
                 </NavLink>
-              </>
+              </div>
             ) : (
               <>
                 <span className="text-muted small">
                   {user?.username ? `@${user.username}` : ""}
                 </span>
 
-                <button
-                  className="btn btn-outline-danger btn-sm"
-                  onClick={logout}
-                >
+                <button className="btn btn-outline-danger btn-sm" onClick={logout}>
                   Salir
                 </button>
               </>
             )}
 
-          </div>
         </div>
-      </div>
     </nav>
   );
 }

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
+
 import Home from "./pages/Home.jsx";
 import EventDetail from "./pages/EventDetail.jsx";
 import Checkout from "./pages/Checkout.jsx";
@@ -15,6 +16,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminOrganizerValidation from "./pages/admin/AdminOrganizerValidation.jsx";
 import AdminUsers from "./pages/admin/AdminUsers.jsx";
 import OrganizerCreateEvent from "./pages/organizer/OrganizerCreateEvent.jsx";
+
 
 export default function App() {
   return (
@@ -108,6 +110,7 @@ export default function App() {
           }
         />
       </Routes>
+
     </BrowserRouter>
   );
 }

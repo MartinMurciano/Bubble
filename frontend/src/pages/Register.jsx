@@ -80,14 +80,14 @@ export default function Register() {
                 </div>
 
                 <div className="col-12 mt-2">
-                  <button className="btn btn-primary w-100">Registrarme</button>
+                  <button className="buttonLogin">Registrarme</button>
                 </div>
               </form>
             </div>
 
             <div className="card-footer bg-white">
               <div className="small text-muted">
-                ¿Ya tenés cuenta? <Link to="/login">Login</Link>
+                ¿Ya tenés cuenta? <Link to="/login" className="buttonRegisterFromLogin">Login</Link>
               </div>
             </div>
           </div>

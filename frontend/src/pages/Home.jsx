@@ -5,6 +5,7 @@ import { eventsApi } from "../api/events.js";
 export default function Home() {
   const [events, setEvents] = useState([]);
   const [err, setErr] = useState("");
+  
 
   useEffect(() => {
     eventsApi
@@ -30,6 +31,26 @@ export default function Home() {
           <div className="col-12 col-sm-6 col-lg-4 col-xxl-3" key={e.id_fiesta}>
             <div className="card h-100">
               <div className="card-body">
+                {e.image_url ? (
+                  <img
+                    src={e.image_url}
+                    className="card-img-top"
+                    alt={e.titulo}
+                    style={{ height: 180, objectFit: "cover" }}
+                    onError={(ev) => {
+                      // fallback si la URL está rota
+                      ev.currentTarget.src =
+                        "https://via.placeholder.com/800x450?text=Bubble+Evento";
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="bg-light d-flex align-items-center justify-content-center"
+                    style={{ height: 180 }}
+                  >
+                    <span className="text-muted">Sin imagen</span>
+                  </div>
+                )}
                 <h5 className="card-title">{e.titulo}</h5>
                 <p className="card-text text-muted mb-2">
                   {e.ciudad} {e.provincia}
@@ -40,7 +61,7 @@ export default function Home() {
               </div>
 
               <div className="card-footer bg-white border-0 pt-0">
-                <Link className="btn btn-primary w-100" to={`/events/${e.id_fiesta}`}>
+                <Link className="buttonVerDetalleCard" to={`/events/${e.id_fiesta}`}>
                   Ver detalle
                 </Link>
               </div>
