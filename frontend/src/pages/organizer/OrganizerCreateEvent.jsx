@@ -1,66 +1,78 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { organizerApi } from "../../api/organizer.js";
-import { useNavigate } from "react-router-dom";
+import { eventsApi } from "../../api/events.js";
+import { useNavigate, Link } from "react-router-dom";
+
+// Tipos de entrada hardcodeados como fallback; idealmente traerlos del backend
+// si tenés una tabla tipo_entrada con endpoint GET /api/tipo-entrada
+const TIPOS_DEFAULT = [
+  { id_tipo_entrada: 1, nombre: "General" },
+  { id_tipo_entrada: 2, nombre: "VIP" },
+  { id_tipo_entrada: 3, nombre: "Ultra VIP" },
+];
 
 export default function OrganizerCreateEvent() {
   const nav = useNavigate();
 
-  // Paso 1: Evento
+  const [generos, setGeneros] = useState([]);
   const [eventForm, setEventForm] = useState({
     titulo: "",
     descripcion: "",
+    ubicacion: "",
     ciudad: "",
     provincia: "",
-    direccion: "",
-    id_genero: 1, // ajusta a tu DB
-    edad_minima: 18,
+    imagen_url: "",
+    id_genero: "",
   });
-
-  // Paso 2: Fecha
-  const [dateForm, setDateForm] = useState({
-    fecha_hora: "", // "2026-02-16T22:00"
-  });
-
-  // Paso 3: Entradas (1 o varias)
+  const [dateForm, setDateForm] = useState({ fecha_hora: "" });
   const [tickets, setTickets] = useState([
-    { id_tipo_entrada: 1, precio: 1000, stock: 50 },
+    { id_tipo_entrada: 1, precio: "", stock_total: "" },
   ]);
-
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
-  const addTicketRow = () => {
-    setTickets((t) => [...t, { id_tipo_entrada: 1, precio: 1000, stock: 50 }]);
-  };
+  // Traer géneros del backend para el select
+  useEffect(() => {
+    eventsApi
+      .generos()
+      .then(setGeneros)
+      .catch(() => setGeneros([]));
+  }, []);
 
-  const updateTicket = (idx, patch) => {
+  const addTicketRow = () =>
+    setTickets((t) => [...t, { id_tipo_entrada: 1, precio: "", stock_total: "" }]);
+
+  const updateTicket = (idx, patch) =>
     setTickets((prev) => prev.map((t, i) => (i === idx ? { ...t, ...patch } : t)));
-  };
 
-  const removeTicket = (idx) => {
+  const removeTicket = (idx) =>
     setTickets((prev) => prev.filter((_, i) => i !== idx));
-  };
 
   const submit = async (e) => {
     e.preventDefault();
     setErr("");
     setBusy(true);
-
     try {
-      // 1) crear evento
-      const rEvent = await organizerApi.createEvent(eventForm);
-      const id_fiesta = rEvent.id_fiesta;
+      // 1) Crear evento
+      const { id_fiesta } = await organizerApi.createEvent({
+        ...eventForm,
+        id_genero: Number(eventForm.id_genero),
+      });
 
-      // 2) crear fecha
-      const rDate = await organizerApi.addDate(id_fiesta, dateForm);
-      const id_fecha = rDate.id_fecha;
+      // 2) Crear fecha
+      const { id_fecha } = await organizerApi.addDate(id_fiesta, {
+        fecha_hora: dateForm.fecha_hora.replace("T", " ") + ":00",
+      });
 
-      // 3) crear entradas
-      for (const t of tickets) {
-        await organizerApi.addTicketType(id_fiesta, id_fecha, t);
-      }
+      // 3) Crear entradas (el backend espera array en { entradas: [...] })
+      const entradas = tickets.map((t) => ({
+        id_tipo_entrada: Number(t.id_tipo_entrada),
+        precio: Number(t.precio),
+        stock_total: Number(t.stock_total),
+      }));
+      await organizerApi.addTickets(id_fecha, entradas);
 
-      // 4) publicar (opcional: podés hacerlo después)
+      // 4) Publicar
       await organizerApi.publish(id_fiesta);
 
       nav("/organizer");
@@ -73,23 +85,24 @@ export default function OrganizerCreateEvent() {
 
   return (
     <div className="container py-4">
-      <div className="d-flex align-items-center justify-content-between mb-3">
+      <div className="d-flex align-items-center gap-3 mb-3">
+        <Link to="/organizer" className="btn btn-outline-secondary btn-sm">
+          ← Volver
+        </Link>
         <h2 className="m-0">Crear evento</h2>
       </div>
 
       {err && <div className="alert alert-danger">{err}</div>}
 
       <form onSubmit={submit} className="row g-3">
-
-        {/* EVENTO */}
+        {/* DATOS DEL EVENTO */}
         <div className="col-12">
           <div className="card">
             <div className="card-body">
               <h5 className="mb-3">Datos del evento</h5>
-
               <div className="row g-2">
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Título</label>
+                <div className="col-12 col-md-8">
+                  <label className="form-label">Título *</label>
                   <input
                     className="form-control"
                     value={eventForm.titulo}
@@ -98,16 +111,21 @@ export default function OrganizerCreateEvent() {
                   />
                 </div>
 
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Género (id_genero)</label>
-                  <input
-                    type="number"
-                    className="form-control"
+                <div className="col-12 col-md-4">
+                  <label className="form-label">Género *</label>
+                  <select
+                    className="form-select"
                     value={eventForm.id_genero}
-                    onChange={(e) => setEventForm({ ...eventForm, id_genero: Number(e.target.value) })}
-                    min={1}
+                    onChange={(e) => setEventForm({ ...eventForm, id_genero: e.target.value })}
                     required
-                  />
+                  >
+                    <option value="">Seleccioná un género</option>
+                    {generos.map((g) => (
+                      <option key={g.id_genero} value={g.id_genero}>
+                        {g.nombre}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="col-12">
@@ -120,8 +138,19 @@ export default function OrganizerCreateEvent() {
                   />
                 </div>
 
-                <div className="col-12 col-md-4">
-                  <label className="form-label">Ciudad</label>
+                <div className="col-12">
+                  <label className="form-label">Ubicación / Venue *</label>
+                  <input
+                    className="form-control"
+                    placeholder="Ej: Estadio Obras"
+                    value={eventForm.ubicacion}
+                    onChange={(e) => setEventForm({ ...eventForm, ubicacion: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="col-12 col-md-6">
+                  <label className="form-label">Ciudad *</label>
                   <input
                     className="form-control"
                     value={eventForm.ciudad}
@@ -130,8 +159,8 @@ export default function OrganizerCreateEvent() {
                   />
                 </div>
 
-                <div className="col-12 col-md-4">
-                  <label className="form-label">Provincia</label>
+                <div className="col-12 col-md-6">
+                  <label className="form-label">Provincia *</label>
                   <input
                     className="form-control"
                     value={eventForm.provincia}
@@ -140,27 +169,16 @@ export default function OrganizerCreateEvent() {
                   />
                 </div>
 
-                <div className="col-12 col-md-4">
-                  <label className="form-label">Edad mínima</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={eventForm.edad_minima}
-                    onChange={(e) => setEventForm({ ...eventForm, edad_minima: Number(e.target.value) })}
-                    min={0}
-                  />
-                </div>
-
                 <div className="col-12">
-                  <label className="form-label">Dirección</label>
+                  <label className="form-label">URL de imagen</label>
                   <input
                     className="form-control"
-                    value={eventForm.direccion}
-                    onChange={(e) => setEventForm({ ...eventForm, direccion: e.target.value })}
+                    placeholder="https://..."
+                    value={eventForm.imagen_url}
+                    onChange={(e) => setEventForm({ ...eventForm, imagen_url: e.target.value })}
                   />
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -170,8 +188,7 @@ export default function OrganizerCreateEvent() {
           <div className="card">
             <div className="card-body">
               <h5 className="mb-3">Fecha del evento</h5>
-
-              <label className="form-label">Fecha y hora</label>
+              <label className="form-label">Fecha y hora *</label>
               <input
                 type="datetime-local"
                 className="form-control"
@@ -179,31 +196,32 @@ export default function OrganizerCreateEvent() {
                 onChange={(e) => setDateForm({ fecha_hora: e.target.value })}
                 required
               />
-              <div className="form-text">
-                Esto crea la primera fecha. Luego hacemos soporte para múltiples fechas.
-              </div>
             </div>
           </div>
         </div>
 
-        {/* ENTRADAS */}
+        {/* TIPOS DE ENTRADA */}
         <div className="col-12">
           <div className="card">
             <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
+              <div className="d-flex align-items-center justify-content-between mb-3">
                 <h5 className="mb-0">Tipos de entrada</h5>
-                <button type="button" className="btn btn-outline-primary btn-sm" onClick={addTicketRow}>
+                <button
+                  type="button"
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={addTicketRow}
+                >
                   + Agregar tipo
                 </button>
               </div>
 
-              <div className="table-responsive mt-3">
+              <div className="table-responsive">
                 <table className="table align-middle">
                   <thead>
                     <tr>
-                      <th style={{ width: 160 }}>id_tipo_entrada</th>
-                      <th style={{ width: 160 }}>Precio</th>
-                      <th style={{ width: 160 }}>Stock</th>
+                      <th>Tipo</th>
+                      <th>Precio ($)</th>
+                      <th>Stock</th>
                       <th />
                     </tr>
                   </thead>
@@ -211,36 +229,44 @@ export default function OrganizerCreateEvent() {
                     {tickets.map((t, idx) => (
                       <tr key={idx}>
                         <td>
+                          <select
+                            className="form-select"
+                            value={t.id_tipo_entrada}
+                            onChange={(e) =>
+                              updateTicket(idx, { id_tipo_entrada: Number(e.target.value) })
+                            }
+                            required
+                          >
+                            {TIPOS_DEFAULT.map((tipo) => (
+                              <option key={tipo.id_tipo_entrada} value={tipo.id_tipo_entrada}>
+                                {tipo.nombre}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
                           <input
                             type="number"
                             className="form-control"
-                            value={t.id_tipo_entrada}
-                            onChange={(e) => updateTicket(idx, { id_tipo_entrada: Number(e.target.value) })}
+                            placeholder="0"
+                            value={t.precio}
+                            onChange={(e) => updateTicket(idx, { precio: e.target.value })}
+                            min={0}
+                            required
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="form-control"
+                            placeholder="0"
+                            value={t.stock_total}
+                            onChange={(e) => updateTicket(idx, { stock_total: e.target.value })}
                             min={1}
                             required
                           />
                         </td>
                         <td>
-                          <input
-                            type="number"
-                            className="form-control"
-                            value={t.precio}
-                            onChange={(e) => updateTicket(idx, { precio: Number(e.target.value) })}
-                            min={0}
-                            required
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            className="form-control"
-                            value={t.stock}
-                            onChange={(e) => updateTicket(idx, { stock: Number(e.target.value) })}
-                            min={0}
-                            required
-                          />
-                        </td>
-                        <td className="text-end">
                           <button
                             type="button"
                             className="btn btn-outline-danger btn-sm"
@@ -255,18 +281,13 @@ export default function OrganizerCreateEvent() {
                   </tbody>
                 </table>
               </div>
-
-              <div className="form-text">
-                Por ahora usamos ids numéricos. Después lo cambiamos a selects que traigan géneros y tipos de entrada del backend.
-              </div>
             </div>
           </div>
         </div>
 
-        {/* SUBMIT */}
         <div className="col-12">
           <button className="btn btn-success w-100" disabled={busy}>
-            {busy ? "Creando..." : "Crear y publicar"}
+            {busy ? "Creando..." : "Crear y publicar evento"}
           </button>
         </div>
       </form>

@@ -8,7 +8,8 @@ export default function AdminUsers() {
 
   const load = () => {
     setErr("");
-    reportsApi.adminUsersList()
+    reportsApi
+      .adminUsersList()
       .then(setRows)
       .catch((e) => setErr(e?.response?.data?.error || e.message));
   };
@@ -26,7 +27,7 @@ export default function AdminUsers() {
   return (
     <div className="container py-4">
       <h2 className="mb-2">Gestión de Usuarios</h2>
-      <p className="text-muted">Listado y baja de usuarios. :contentReference[oaicite:8]{index=8}</p>
+      <p className="text-muted">Listado y baja de usuarios registrados.</p>
 
       {err && <div className="alert alert-danger">{err}</div>}
 
@@ -36,7 +37,9 @@ export default function AdminUsers() {
             <tr>
               <th>Nombre</th>
               <th>Email</th>
+              <th>Username</th>
               <th>Rol</th>
+              <th>Estado</th>
               <th className="text-end">Acciones</th>
             </tr>
           </thead>
@@ -45,11 +48,17 @@ export default function AdminUsers() {
               <tr key={u.id_usuario}>
                 <td>{u.nombre} {u.apellido}</td>
                 <td>{u.email}</td>
+                <td>@{u.username}</td>
                 <td><span className="badge bg-secondary">{u.rol}</span></td>
+                <td>
+                  <span className={`badge ${u.estado === "ACTIVO" ? "bg-success" : "bg-danger"}`}>
+                    {u.estado}
+                  </span>
+                </td>
                 <td className="text-end">
                   <button
                     className="btn btn-outline-danger btn-sm"
-                    disabled={busy === u.id_usuario}
+                    disabled={busy === u.id_usuario || u.estado === "INACTIVO"}
                     onClick={() => remove(u.id_usuario)}
                   >
                     Dar de baja

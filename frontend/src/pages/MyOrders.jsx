@@ -20,25 +20,50 @@ export default function MyOrders() {
       {err && <div className="alert alert-danger">{err}</div>}
 
       {!err && orders.length === 0 ? (
-        <div className="alert alert-secondary">No hay compras todavía.</div>
+        <div className="alert alert-secondary">
+          No hay compras todavía.{" "}
+          <Link to="/">Ver eventos</Link>
+        </div>
       ) : (
         <div className="row g-3">
           {orders.map((o) => (
             <div className="col-12 col-md-6 col-lg-4" key={o.id_factura}>
               <div className="card h-100">
                 <div className="card-body">
-                  <div className="d-flex justify-content-between">
-                    <span className="fw-semibold">Factura #{o.id_factura}</span>
-                    <span className="badge bg-secondary">{o.estado_pago}</span>
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="fw-semibold">Compra #{o.id_factura}</span>
+                    <span
+                      className={`badge ${
+                        o.estado_pago === "APROBADO"
+                          ? "bg-success"
+                          : o.estado_pago === "PENDIENTE"
+                          ? "bg-warning text-dark"
+                          : "bg-secondary"
+                      }`}
+                    >
+                      {o.estado_pago}
+                    </span>
                   </div>
-                  <div className="mt-2">
-                    <div className="text-muted">Total</div>
-                    <div className="fs-5">${o.total}</div>
+
+                  <div className="text-muted small mb-1">
+                    {new Date(o.fecha_emision).toLocaleDateString("es-AR", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </div>
+
+                  <div className="fs-5 fw-bold mt-1">
+                    ${Number(o.total).toLocaleString("es-AR")}
                   </div>
                 </div>
-                <div className="card-footer bg-white border-0 pt-0">
-                  <Link className="btn btn-outline-primary w-100" to={`/orders/${o.id_factura}`}>
-                    Ver detalle
+
+                <div className="card-footer bg-white border-0 pt-0 d-grid gap-2">
+                  <Link
+                    className="btn btn-outline-primary btn-sm"
+                    to={`/orders/${o.id_factura}`}
+                  >
+                    Ver detalle y tickets
                   </Link>
                 </div>
               </div>

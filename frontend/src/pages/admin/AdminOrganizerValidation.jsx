@@ -8,7 +8,8 @@ export default function AdminOrganizerValidation() {
 
   const load = () => {
     setErr("");
-    reportsApi.adminPendingOrganizers()
+    reportsApi
+      .adminPendingOrganizers()
       .then(setRows)
       .catch((e) => setErr(e?.response?.data?.error || e.message));
   };
@@ -32,7 +33,7 @@ export default function AdminOrganizerValidation() {
   return (
     <div className="container py-4">
       <h2 className="mb-2">Validación de Organizadores</h2>
-      <p className="text-muted">Solicitudes pendientes de validación. :contentReference[oaicite:7]{index=7}</p>
+      <p className="text-muted">Solicitudes pendientes de validación.</p>
 
       {err && <div className="alert alert-danger">{err}</div>}
 
@@ -43,31 +44,33 @@ export default function AdminOrganizerValidation() {
           <table className="table align-middle">
             <thead>
               <tr>
-                <th>Usuario</th>
+                <th>Nombre</th>
                 <th>Email</th>
-                <th>Teléfono</th>
+                <th>Razón social</th>
+                <th>CUIT</th>
                 <th className="text-end">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((u) => (
-                <tr key={u.id_usuario}>
+                <tr key={u.id_organizador}>
                   <td>{u.nombre} {u.apellido}</td>
                   <td>{u.email}</td>
-                  <td>{u.telefono || "-"}</td>
+                  <td>{u.razon_social || "-"}</td>
+                  <td>{u.cuit || "-"}</td>
                   <td className="text-end">
                     <div className="btn-group">
                       <button
                         className="btn btn-success btn-sm"
-                        disabled={busy === u.id_usuario}
-                        onClick={() => approve(u.id_usuario)}
+                        disabled={busy === u.id_organizador}
+                        onClick={() => approve(u.id_organizador)}
                       >
                         Aprobar
                       </button>
                       <button
                         className="btn btn-outline-danger btn-sm"
-                        disabled={busy === u.id_usuario}
-                        onClick={() => reject(u.id_usuario)}
+                        disabled={busy === u.id_organizador}
+                        onClick={() => reject(u.id_organizador)}
                       >
                         Denegar
                       </button>

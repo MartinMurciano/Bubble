@@ -60,3 +60,45 @@ export async function updateOrganizerStatus(id_organizador, estado_validacion) {
 
   return { updated: true, estado_validacion: s };
 }
+
+// ─── GESTIÓN DE USUARIOS (nuevo) ─────────────────────────────────────────────
+
+export async function fetchUsers() {
+  const [rows] = await pool.query(
+    `
+    SELECT
+      u.id_usuario,
+      u.nombre,
+      u.apellido,
+      u.email,
+      u.username,
+      u.estado,
+      u.fecha_creacion,
+      r.nombre AS rol
+    FROM usuario u
+    JOIN rol r ON r.id_rol = u.id_rol
+    ORDER BY u.fecha_creacion DESC
+    `
+  );
+  return rows;
+}
+
+export async function deactivateUser(id_usuario) {
+  // Soft delete: marcar como INACTIVO en vez de borrar físicamente
+  const [result] = await pool.query(
+    `
+    UPDATE usuario
+    SET estado = 'INACTIVO'
+    WHERE id_usuario = :id_usuario
+    `,
+    { id_usuario }
+  );
+
+  if (result.affectedRows === 0) {
+    const err = new Error("Usuario no encontrado");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  return { deleted: true };
+}

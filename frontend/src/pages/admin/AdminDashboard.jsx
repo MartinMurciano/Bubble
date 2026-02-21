@@ -5,7 +5,7 @@ export default function AdminDashboard() {
     <div className="container py-4">
       <h2 className="mb-2">Panel Administrador</h2>
       <p className="text-muted">
-        Validación de organizadores y gestión de usuarios. :contentReference[oaicite:6]{index=6}
+        Validación de organizadores y gestión de usuarios.
       </p>
 
       <div className="row g-3">
@@ -13,7 +13,7 @@ export default function AdminDashboard() {
           <div className="card">
             <div className="card-body">
               <h5>Validar Organizadores</h5>
-              <p className="text-muted mb-3">Aprobar/denegar solicitudes pendientes.</p>
+              <p className="text-muted mb-3">Aprobar o denegar solicitudes pendientes.</p>
               <Link className="btn btn-primary" to="/admin/organizers">Ir</Link>
             </div>
           </div>
