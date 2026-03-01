@@ -24,6 +24,22 @@ export async function createUser(payload) {
     cuit, razon_social, sitio_web,
   } = payload;
 
+  // Validar edad mínima de 18 años
+  if (!fecha_nacimiento) {
+    const err = new Error("La fecha de nacimiento es requerida");
+    err.statusCode = 400;
+    throw err;
+  }
+  const hoy = new Date();
+  const nacimiento = new Date(fecha_nacimiento);
+  const edad = hoy.getFullYear() - nacimiento.getFullYear() -
+    (hoy < new Date(hoy.getFullYear(), nacimiento.getMonth(), nacimiento.getDate()) ? 1 : 0);
+  if (edad < 18) {
+    const err = new Error("Debés ser mayor de 18 años para registrarte");
+    err.statusCode = 400;
+    throw err;
+  }
+
   const [existing] = await pool.query(
     `SELECT id_usuario FROM usuario WHERE email = :email OR username = :username`,
     { email, username }

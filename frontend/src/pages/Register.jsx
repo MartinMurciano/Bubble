@@ -21,6 +21,19 @@ export default function Register() {
   const submit = async (e) => {
     e.preventDefault();
     setErr("");
+
+    // Validación de edad mínima 18 años (cliente)
+    if (form.fecha_nacimiento) {
+      const hoy = new Date();
+      const nac = new Date(form.fecha_nacimiento);
+      const edad = hoy.getFullYear() - nac.getFullYear() -
+        (hoy < new Date(hoy.getFullYear(), nac.getMonth(), nac.getDate()) ? 1 : 0);
+      if (edad < 18) {
+        setErr("Debés ser mayor de 18 años para registrarte.");
+        return;
+      }
+    }
+
     try {
       await authApi.register(form);
       setEmailEnviado(form.email);
