@@ -129,14 +129,6 @@ function CheckoutForm({ items, event }) {
               onChange={(e) => setCardComplete(e.complete)}
             />
           </div>
-          <div className="form-text">
-            🔒 Pago seguro procesado por Stripe. Tu información está encriptada.
-          </div>
-
-          {/* Tarjeta de prueba */}
-          <div className="alert alert-info mt-3 py-2 small mb-0">
-            <strong>Modo test:</strong> usá la tarjeta <code>4242 4242 4242 4242</code>, fecha futura y cualquier CVV.
-          </div>
         </div>
       </div>
 

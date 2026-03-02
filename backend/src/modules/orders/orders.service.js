@@ -2,6 +2,8 @@ import { pool } from "../../config/db.js";
 import crypto from "crypto";
 import Stripe from "stripe";
 import { STRIPE_SECRET_KEY } from "../../config/env.js";
+import { generateInvoicePDF } from "../../utils/invoice.pdf.js";
+import { sendInvoiceEmail } from "../../utils/mailer.js";
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
@@ -185,6 +187,34 @@ export async function confirmOrder(id_usuario, id_factura) {
     `UPDATE factura SET estado_pago = 'APROBADO' WHERE id_factura = :id_factura`,
     { id_factura }
   );
+
+  // 4) Traer datos completos para la factura PDF
+  try {
+    const [usuarioRows] = await pool.query(
+      `SELECT nombre, apellido, email FROM usuario WHERE id_usuario = :id_usuario LIMIT 1`,
+      { id_usuario }
+    );
+
+    const facturaCompleta = { ...factura, estado_pago: "APROBADO" };
+    const { detalles } = await fetchMyOrderDetail(id_usuario, id_factura);
+
+    const pdfBuffer = await generateInvoicePDF({
+      factura: facturaCompleta,
+      detalles,
+      usuario: usuarioRows[0],
+    });
+
+    await sendInvoiceEmail({
+      email: usuarioRows[0].email,
+      nombre: usuarioRows[0].nombre,
+      factura: facturaCompleta,
+      detalles,
+      pdfBuffer,
+    });
+  } catch (mailErr) {
+    // No fallar el pago si el email falla — solo loguear
+    console.error("Error enviando factura por email:", mailErr);
+  }
 
   return { ok: true, id_factura, total: factura.total };
 }

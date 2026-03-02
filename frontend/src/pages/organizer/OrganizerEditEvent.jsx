@@ -4,9 +4,16 @@ import { organizerApi } from "../../api/organizer.js";
 import { eventsApi } from "../../api/events.js";
 
 const ESTADOS_EVENTO = ["BORRADOR", "PUBLICADO", "CANCELADO", "FINALIZADO"];
+const TIPOS_ENTRADA = [
+  { id_tipo_entrada: 1, nombre: "General" },
+  { id_tipo_entrada: 2, nombre: "VIP" },
+  { id_tipo_entrada: 3, nombre: "Ultra VIP" },
+];
+
+const emptyTicket = () => ({ id_tipo_entrada: 1, precio: "", stock_total: "" });
 
 export default function OrganizerEditEvent() {
-  const { id } = useParams(); // id_fiesta
+  const { id } = useParams();
   const nav = useNavigate();
 
   const [event, setEvent] = useState(null);
@@ -15,18 +22,29 @@ export default function OrganizerEditEvent() {
   const [err, setErr] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Form de datos del evento
+  // Form datos del evento
   const [eventForm, setEventForm] = useState(null);
   const [savingEvent, setSavingEvent] = useState(false);
 
-  // Form de estado del evento
+  // Form estado
   const [savingStatus, setSavingStatus] = useState(false);
 
-  // Entradas editables: { [id_entrada]: { precio, stock_total, estado } }
+  // Edición de entradas existentes
   const [ticketEdits, setTicketEdits] = useState({});
   const [savingTicket, setSavingTicket] = useState(null);
 
-  useEffect(() => {
+  // Agregar nueva fecha
+  const [showAddDate, setShowAddDate] = useState(false);
+  const [newDate, setNewDate] = useState("");
+  const [addingDate, setAddingDate] = useState(false);
+
+  // Agregar entradas a una fecha existente
+  const [addTicketFecha, setAddTicketFecha] = useState(null); // id_fecha activo
+  const [newTickets, setNewTickets] = useState([emptyTicket()]);
+  const [addingTickets, setAddingTickets] = useState(false);
+
+  const reload = () => {
+    setLoading(true);
     Promise.all([
       organizerApi.myEventDetail(id),
       eventsApi.generos().catch(() => []),
@@ -43,8 +61,6 @@ export default function OrganizerEditEvent() {
           imagen_url: ev.imagen_url || "",
           id_genero: ev.id_genero,
         });
-
-        // Inicializar edits de entradas
         const edits = {};
         for (const fecha of ev.fechas || []) {
           for (const entrada of fecha.entradas || []) {
@@ -59,7 +75,9 @@ export default function OrganizerEditEvent() {
       })
       .catch((e) => setErr(e?.response?.data?.error || e.message))
       .finally(() => setLoading(false));
-  }, [id]);
+  };
+
+  useEffect(() => { reload(); }, [id]);
 
   const flash = (msg) => {
     setSuccessMsg(msg);
@@ -72,10 +90,7 @@ export default function OrganizerEditEvent() {
     setErr("");
     setSavingEvent(true);
     try {
-      await organizerApi.updateEvent(id, {
-        ...eventForm,
-        id_genero: Number(eventForm.id_genero),
-      });
+      await organizerApi.updateEvent(id, { ...eventForm, id_genero: Number(eventForm.id_genero) });
       flash("Evento actualizado correctamente.");
     } catch (e2) {
       setErr(e2?.response?.data?.error || e2.message);
@@ -84,7 +99,7 @@ export default function OrganizerEditEvent() {
     }
   };
 
-  // Cambiar estado del evento
+  // Cambiar estado
   const changeStatus = async (estado) => {
     if (!confirm(`¿Cambiar estado a "${estado}"?`)) return;
     setErr("");
@@ -100,7 +115,7 @@ export default function OrganizerEditEvent() {
     }
   };
 
-  // Guardar cambios de una entrada
+  // Guardar entrada existente
   const saveTicket = async (id_entrada) => {
     setErr("");
     setSavingTicket(id_entrada);
@@ -119,10 +134,49 @@ export default function OrganizerEditEvent() {
   };
 
   const updateTicketField = (id_entrada, field, value) => {
-    setTicketEdits((prev) => ({
-      ...prev,
-      [id_entrada]: { ...prev[id_entrada], [field]: value },
-    }));
+    setTicketEdits((prev) => ({ ...prev, [id_entrada]: { ...prev[id_entrada], [field]: value } }));
+  };
+
+  // Agregar nueva fecha
+  const submitAddDate = async (e) => {
+    e.preventDefault();
+    if (!newDate) return;
+    setErr("");
+    setAddingDate(true);
+    try {
+      await organizerApi.addDate(id, { fecha_hora: newDate });
+      flash("Fecha agregada.");
+      setShowAddDate(false);
+      setNewDate("");
+      reload();
+    } catch (e2) {
+      setErr(e2?.response?.data?.error || e2.message);
+    } finally {
+      setAddingDate(false);
+    }
+  };
+
+  // Agregar entradas a fecha existente
+  const submitAddTickets = async (e) => {
+    e.preventDefault();
+    setErr("");
+    setAddingTickets(true);
+    try {
+      const entradas = newTickets.map((t) => ({
+        id_tipo_entrada: Number(t.id_tipo_entrada),
+        precio: Number(t.precio),
+        stock_total: Number(t.stock_total),
+      }));
+      await organizerApi.addTickets(addTicketFecha, entradas);
+      flash("Entradas agregadas.");
+      setAddTicketFecha(null);
+      setNewTickets([emptyTicket()]);
+      reload();
+    } catch (e2) {
+      setErr(e2?.response?.data?.error || e2.message);
+    } finally {
+      setAddingTickets(false);
+    }
   };
 
   if (loading) return <div className="container py-4 text-muted">Cargando...</div>;
@@ -132,18 +186,14 @@ export default function OrganizerEditEvent() {
     <div className="container py-4">
       {/* Header */}
       <div className="d-flex align-items-center gap-3 mb-4">
-        <Link to="/organizer" className="btn btn-outline-secondary btn-sm">
-          ← Volver
-        </Link>
+        <Link to="/organizer" className="btn btn-outline-secondary btn-sm">← Volver</Link>
         <div>
           <h2 className="m-0">{event.titulo}</h2>
           <span className={`badge mt-1 ${
             event.estado === "PUBLICADO" ? "bg-success" :
             event.estado === "CANCELADO" ? "bg-danger" :
             event.estado === "FINALIZADO" ? "bg-secondary" : "bg-warning text-dark"
-          }`}>
-            {event.estado}
-          </span>
+          }`}>{event.estado}</span>
         </div>
       </div>
 
@@ -151,7 +201,7 @@ export default function OrganizerEditEvent() {
       {successMsg && <div className="alert alert-success">{successMsg}</div>}
 
       <div className="row g-4">
-        {/* Columna izquierda: datos del evento */}
+        {/* Columna izquierda */}
         <div className="col-12 col-lg-8">
 
           {/* Datos del evento */}
@@ -161,74 +211,43 @@ export default function OrganizerEditEvent() {
               <form onSubmit={saveEvent} className="row g-2">
                 <div className="col-12 col-md-8">
                   <label className="form-label">Título *</label>
-                  <input
-                    className="form-control"
-                    value={eventForm.titulo}
-                    onChange={(e) => setEventForm({ ...eventForm, titulo: e.target.value })}
-                    required
-                  />
+                  <input className="form-control" value={eventForm.titulo}
+                    onChange={(e) => setEventForm({ ...eventForm, titulo: e.target.value })} required />
                 </div>
-
                 <div className="col-12 col-md-4">
                   <label className="form-label">Género</label>
-                  <select
-                    className="form-select"
-                    value={eventForm.id_genero}
-                    onChange={(e) => setEventForm({ ...eventForm, id_genero: e.target.value })}
-                  >
+                  <select className="form-select" value={eventForm.id_genero}
+                    onChange={(e) => setEventForm({ ...eventForm, id_genero: e.target.value })}>
                     {generos.map((g) => (
                       <option key={g.id_genero} value={g.id_genero}>{g.nombre}</option>
                     ))}
                   </select>
                 </div>
-
                 <div className="col-12">
                   <label className="form-label">Descripción</label>
-                  <textarea
-                    className="form-control"
-                    rows={3}
-                    value={eventForm.descripcion}
-                    onChange={(e) => setEventForm({ ...eventForm, descripcion: e.target.value })}
-                  />
+                  <textarea className="form-control" rows={3} value={eventForm.descripcion}
+                    onChange={(e) => setEventForm({ ...eventForm, descripcion: e.target.value })} />
                 </div>
-
                 <div className="col-12">
                   <label className="form-label">Ubicación / Venue</label>
-                  <input
-                    className="form-control"
-                    value={eventForm.ubicacion}
-                    onChange={(e) => setEventForm({ ...eventForm, ubicacion: e.target.value })}
-                  />
+                  <input className="form-control" value={eventForm.ubicacion}
+                    onChange={(e) => setEventForm({ ...eventForm, ubicacion: e.target.value })} />
                 </div>
-
                 <div className="col-6">
                   <label className="form-label">Ciudad</label>
-                  <input
-                    className="form-control"
-                    value={eventForm.ciudad}
-                    onChange={(e) => setEventForm({ ...eventForm, ciudad: e.target.value })}
-                  />
+                  <input className="form-control" value={eventForm.ciudad}
+                    onChange={(e) => setEventForm({ ...eventForm, ciudad: e.target.value })} />
                 </div>
-
                 <div className="col-6">
                   <label className="form-label">Provincia</label>
-                  <input
-                    className="form-control"
-                    value={eventForm.provincia}
-                    onChange={(e) => setEventForm({ ...eventForm, provincia: e.target.value })}
-                  />
+                  <input className="form-control" value={eventForm.provincia}
+                    onChange={(e) => setEventForm({ ...eventForm, provincia: e.target.value })} />
                 </div>
-
                 <div className="col-12">
                   <label className="form-label">URL de imagen</label>
-                  <input
-                    className="form-control"
-                    placeholder="https://..."
-                    value={eventForm.imagen_url}
-                    onChange={(e) => setEventForm({ ...eventForm, imagen_url: e.target.value })}
-                  />
+                  <input className="form-control" placeholder="https://..." value={eventForm.imagen_url}
+                    onChange={(e) => setEventForm({ ...eventForm, imagen_url: e.target.value })} />
                 </div>
-
                 <div className="col-12 mt-1">
                   <button className="btn btn-primary" disabled={savingEvent}>
                     {savingEvent ? "Guardando..." : "Guardar cambios"}
@@ -238,10 +257,43 @@ export default function OrganizerEditEvent() {
             </div>
           </div>
 
-          {/* Entradas por fecha */}
+          {/* Fechas y entradas */}
           <div className="card">
             <div className="card-body">
-              <h5 className="mb-3">Entradas por fecha</h5>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h5 className="mb-0">Fechas y entradas</h5>
+                <button
+                  className="btn btn-sm btn-outline-primary"
+                  onClick={() => setShowAddDate((v) => !v)}
+                >
+                  {showAddDate ? "Cancelar" : "+ Agregar fecha"}
+                </button>
+              </div>
+
+              {/* Form agregar fecha */}
+              {showAddDate && (
+                <form onSubmit={submitAddDate} className="border rounded p-3 mb-4"
+                  style={{ background: "#f8f4ff" }}>
+                  <h6 className="mb-2">Nueva fecha</h6>
+                  <div className="row g-2 align-items-end">
+                    <div className="col-12 col-sm-8">
+                      <label className="form-label small">Fecha y hora</label>
+                      <input
+                        type="datetime-local"
+                        className="form-control"
+                        value={newDate}
+                        onChange={(e) => setNewDate(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="col-12 col-sm-4">
+                      <button className="btn btn-primary w-100" disabled={addingDate}>
+                        {addingDate ? "Guardando..." : "Agregar fecha"}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
 
               {event.fechas?.length === 0 && (
                 <div className="text-muted">No hay fechas configuradas.</div>
@@ -249,74 +301,128 @@ export default function OrganizerEditEvent() {
 
               {event.fechas?.map((fecha) => (
                 <div key={fecha.id_fecha} className="mb-4">
-                  <div className="fw-semibold text-muted small mb-2">
-                    📅 {new Date(fecha.fecha_hora).toLocaleString("es-AR", {
-                      weekday: "long", day: "2-digit", month: "long",
-                      year: "numeric", hour: "2-digit", minute: "2-digit",
-                    })}
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <div className="fw-semibold text-muted small">
+                      📅 {new Date(fecha.fecha_hora.toString().replace(" ", "T")).toLocaleString("es-AR", {
+                        weekday: "long", day: "2-digit", month: "long",
+                        year: "numeric", hour: "2-digit", minute: "2-digit",
+                      })}
+                    </div>
+                    <button
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={() => {
+                        setAddTicketFecha(addTicketFecha === fecha.id_fecha ? null : fecha.id_fecha);
+                        setNewTickets([emptyTicket()]);
+                      }}
+                    >
+                      {addTicketFecha === fecha.id_fecha ? "Cancelar" : "+ Agregar entradas"}
+                    </button>
                   </div>
 
+                  {/* Form agregar entradas a esta fecha */}
+                  {addTicketFecha === fecha.id_fecha && (
+                    <form onSubmit={submitAddTickets} className="border rounded p-3 mb-3"
+                      style={{ background: "#f8f4ff" }}>
+                      <h6 className="mb-2">Nuevas entradas</h6>
+                      {newTickets.map((t, idx) => (
+                        <div key={idx} className="row g-2 align-items-end mb-2">
+                          <div className="col-12 col-sm-4">
+                            <label className="form-label small">Tipo</label>
+                            <select className="form-select form-select-sm"
+                              value={t.id_tipo_entrada}
+                              onChange={(e) => {
+                                const copy = [...newTickets];
+                                copy[idx].id_tipo_entrada = e.target.value;
+                                setNewTickets(copy);
+                              }}>
+                              {TIPOS_ENTRADA.map((tp) => (
+                                <option key={tp.id_tipo_entrada} value={tp.id_tipo_entrada}>{tp.nombre}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="col-6 col-sm-3">
+                            <label className="form-label small">Precio ($)</label>
+                            <input type="number" className="form-control form-control-sm"
+                              placeholder="0" min={0} value={t.precio}
+                              onChange={(e) => {
+                                const copy = [...newTickets];
+                                copy[idx].precio = e.target.value;
+                                setNewTickets(copy);
+                              }} required />
+                          </div>
+                          <div className="col-6 col-sm-3">
+                            <label className="form-label small">Stock</label>
+                            <input type="number" className="form-control form-control-sm"
+                              placeholder="0" min={1} value={t.stock_total}
+                              onChange={(e) => {
+                                const copy = [...newTickets];
+                                copy[idx].stock_total = e.target.value;
+                                setNewTickets(copy);
+                              }} required />
+                          </div>
+                          <div className="col-12 col-sm-2">
+                            {newTickets.length > 1 && (
+                              <button type="button" className="btn btn-sm btn-outline-danger w-100"
+                                onClick={() => setNewTickets(newTickets.filter((_, i) => i !== idx))}>
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="d-flex gap-2 mt-2">
+                        <button type="button" className="btn btn-sm btn-outline-secondary"
+                          onClick={() => setNewTickets([...newTickets, emptyTicket()])}>
+                          + Otro tipo
+                        </button>
+                        <button type="submit" className="btn btn-sm btn-primary" disabled={addingTickets}>
+                          {addingTickets ? "Guardando..." : "Guardar entradas"}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Entradas existentes */}
                   {fecha.entradas.length === 0 && (
                     <div className="text-muted small">Sin entradas configuradas.</div>
                   )}
-
                   {fecha.entradas.map((en) => {
                     const edit = ticketEdits[en.id_entrada] || {};
                     const vendidas = en.stock_total - en.stock_disponible;
                     return (
-                      <div
-                        key={en.id_entrada}
-                        className="border rounded p-3 mb-2"
-                        style={{ background: "#fafafa" }}
-                      >
+                      <div key={en.id_entrada} className="border rounded p-3 mb-2"
+                        style={{ background: "#fafafa" }}>
                         <div className="row g-2 align-items-end">
                           <div className="col-12 col-sm-3">
                             <label className="form-label small mb-1">Tipo</label>
                             <div className="fw-semibold">{en.tipo}</div>
                             <div className="text-muted small">Vendidas: {vendidas}</div>
                           </div>
-
                           <div className="col-6 col-sm-2">
                             <label className="form-label small mb-1">Precio ($)</label>
-                            <input
-                              type="number"
-                              className="form-control form-control-sm"
-                              value={edit.precio}
-                              min={0}
-                              onChange={(e) => updateTicketField(en.id_entrada, "precio", e.target.value)}
-                            />
+                            <input type="number" className="form-control form-control-sm"
+                              value={edit.precio} min={0}
+                              onChange={(e) => updateTicketField(en.id_entrada, "precio", e.target.value)} />
                           </div>
-
                           <div className="col-6 col-sm-2">
                             <label className="form-label small mb-1">Stock total</label>
-                            <input
-                              type="number"
-                              className="form-control form-control-sm"
-                              value={edit.stock_total}
-                              min={vendidas}
-                              onChange={(e) => updateTicketField(en.id_entrada, "stock_total", e.target.value)}
-                            />
+                            <input type="number" className="form-control form-control-sm"
+                              value={edit.stock_total} min={vendidas}
+                              onChange={(e) => updateTicketField(en.id_entrada, "stock_total", e.target.value)} />
                           </div>
-
                           <div className="col-6 col-sm-3">
                             <label className="form-label small mb-1">Estado</label>
-                            <select
-                              className="form-select form-select-sm"
-                              value={edit.estado}
-                              onChange={(e) => updateTicketField(en.id_entrada, "estado", e.target.value)}
-                            >
+                            <select className="form-select form-select-sm" value={edit.estado}
+                              onChange={(e) => updateTicketField(en.id_entrada, "estado", e.target.value)}>
                               <option value="ACTIVA">ACTIVA</option>
                               <option value="AGOTADA">AGOTADA</option>
                               <option value="INACTIVA">INACTIVA</option>
                             </select>
                           </div>
-
                           <div className="col-6 col-sm-2">
-                            <button
-                              className="btn btn-primary btn-sm w-100"
+                            <button className="btn btn-primary btn-sm w-100"
                               disabled={savingTicket === en.id_entrada}
-                              onClick={() => saveTicket(en.id_entrada)}
-                            >
+                              onClick={() => saveTicket(en.id_entrada)}>
                               {savingTicket === en.id_entrada ? "..." : "Guardar"}
                             </button>
                           </div>
@@ -330,23 +436,21 @@ export default function OrganizerEditEvent() {
           </div>
         </div>
 
-        {/* Columna derecha: acciones de estado */}
+        {/* Columna derecha: estado */}
         <div className="col-12 col-lg-4">
           <div className="card" style={{ position: "sticky", top: 20 }}>
             <div className="card-body">
               <h5 className="mb-3">Estado del evento</h5>
               <div className="d-grid gap-2">
                 {ESTADOS_EVENTO.filter((s) => s !== event.estado).map((estado) => (
-                  <button
-                    key={estado}
+                  <button key={estado}
                     className={`btn btn-sm ${
                       estado === "PUBLICADO" ? "btn-success" :
                       estado === "CANCELADO" ? "btn-danger" :
                       estado === "FINALIZADO" ? "btn-secondary" : "btn-outline-secondary"
                     }`}
                     disabled={savingStatus}
-                    onClick={() => changeStatus(estado)}
-                  >
+                    onClick={() => changeStatus(estado)}>
                     {estado === "PUBLICADO" && "▶ Publicar"}
                     {estado === "BORRADOR" && "📝 Volver a borrador"}
                     {estado === "CANCELADO" && "✕ Cancelar evento"}
@@ -354,13 +458,9 @@ export default function OrganizerEditEvent() {
                   </button>
                 ))}
               </div>
-
               <hr />
-
-              <Link
-                to={`/organizer/events/${id}/report`}
-                className="btn btn-outline-primary btn-sm w-100"
-              >
+              <Link to={`/organizer/events/${id}/report`}
+                className="btn btn-outline-primary btn-sm w-100">
                 📊 Ver reporte de ventas
               </Link>
             </div>
