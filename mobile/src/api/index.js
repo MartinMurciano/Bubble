@@ -24,7 +24,9 @@ export const eventsApi = {
 
 export const ordersApi = {
   create: (items) =>
-    http.post("/orders", { metodo_pago: "MERCADOPAGO", items }).then((r) => r.data),
+    http.post("/orders", { items }).then((r) => r.data),
+  confirm: (id_factura) =>
+    http.post(`/orders/${id_factura}/confirm`).then((r) => r.data),
   listMine: () => http.get("/orders").then((r) => r.data.data),
   detailMine: (id) => http.get(`/orders/${id}`).then((r) => r.data.data),
 };

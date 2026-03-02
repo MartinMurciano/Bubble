@@ -68,7 +68,7 @@ export default function AdminOrganizerValidation() {
                         Aprobar
                       </button>
                       <button
-                        className="btn btn-outline-danger btn-sm"
+                        className="btn btn-danger btn-sm"
                         disabled={busy === u.id_organizador}
                         onClick={() => reject(u.id_organizador)}
                       >

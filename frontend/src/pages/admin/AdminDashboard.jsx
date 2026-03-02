@@ -14,7 +14,7 @@ export default function AdminDashboard() {
             <div className="card-body">
               <h5>Validar Organizadores</h5>
               <p className="text-muted mb-3">Aprobar o denegar solicitudes pendientes.</p>
-              <Link className="btn btn-primary" to="/admin/organizers">Ir</Link>
+              <Link className="btn buttonAdmin" to="/admin/organizers">Ir</Link>
             </div>
           </div>
         </div>
@@ -24,7 +24,7 @@ export default function AdminDashboard() {
             <div className="card-body">
               <h5>Gestión de Usuarios</h5>
               <p className="text-muted mb-3">Listado y baja de usuarios.</p>
-              <Link className="btn btn-primary" to="/admin/users">Ir</Link>
+              <Link className="btn buttonAdmin" to="/admin/users">Ir</Link>
             </div>
           </div>
         </div>

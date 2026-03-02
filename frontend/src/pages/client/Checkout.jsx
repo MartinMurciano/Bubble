@@ -1,206 +1,183 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { ordersApi } from "../../api/orders.js";
-import { eventsApi } from "../../api/events.js";
-import { useNavigate, Link } from "react-router-dom";
 
-export default function Checkout() {
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+const CARD_STYLE = {
+  style: {
+    base: {
+      fontSize: "16px",
+      color: "#1a1a1a",
+      fontFamily: "'Josefin Sans', sans-serif",
+      "::placeholder": { color: "#aab7c4" },
+    },
+    invalid: { color: "#dc3545" },
+  },
+};
+
+// ─── FORMULARIO INTERNO ───────────────────────────────────────────────────────
+function CheckoutForm({ items, event }) {
+  const stripe = useStripe();
+  const elements = useElements();
   const nav = useNavigate();
 
-  const [items, setItems] = useState([]);         // [{ id_entrada, cantidad }]
-  const [details, setDetails] = useState([]);     // enriquecido con info del evento
-  const [loading, setLoading] = useState(true);
-  const [placing, setPlacing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [cardComplete, setCardComplete] = useState(false);
 
-  useEffect(() => {
-    const raw = sessionStorage.getItem("checkout_items");
-    const parsed = raw ? JSON.parse(raw) : [];
-    setItems(parsed);
-
-    if (!parsed.length) {
-      setLoading(false);
-      return;
+  // Calcular total
+  const enriched = items.map((item) => {
+    let entrada = null, fecha = null;
+    for (const f of event?.fechas || []) {
+      const e = f.entradas.find((e) => e.id_entrada === item.id_entrada);
+      if (e) { entrada = e; fecha = f; break; }
     }
+    return {
+      ...item,
+      tipo: entrada?.tipo ?? "Entrada",
+      precio: Number(entrada?.precio ?? 0),
+      fecha_hora: fecha?.fecha_hora ?? null,
+    };
+  });
+  const total = enriched.reduce((acc, d) => acc + d.precio * d.cantidad, 0);
 
-    // Buscamos el evento desde sessionStorage también para mostrar info
-    const eventRaw = sessionStorage.getItem("checkout_event");
-    const event = eventRaw ? JSON.parse(eventRaw) : null;
-
-    if (event) {
-      // Enriquecer cada item con datos del evento
-      const enriched = parsed.map((item) => {
-        // Buscar la entrada en todas las fechas del evento
-        let entrada = null;
-        let fecha = null;
-        for (const f of event.fechas || []) {
-          const e = f.entradas.find((e) => e.id_entrada === item.id_entrada);
-          if (e) {
-            entrada = e;
-            fecha = f;
-            break;
-          }
-        }
-        return {
-          ...item,
-          tipo: entrada?.tipo ?? "Entrada",
-          precio: Number(entrada?.precio ?? 0),
-          fecha_hora: fecha?.fecha_hora ?? null,
-          evento: event.titulo,
-          ubicacion: event.ubicacion,
-          ciudad: event.ciudad,
-        };
-      });
-      setDetails(enriched);
-    } else {
-      // Si no hay datos del evento en session, mostramos solo id/cantidad
-      setDetails(parsed.map((i) => ({ ...i, tipo: "Entrada", precio: 0 })));
-    }
-
-    setLoading(false);
-  }, []);
-
-  const total = details.reduce((acc, d) => acc + d.precio * d.cantidad, 0);
-
-  const placeOrder = async () => {
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
     setErr("");
-    setPlacing(true);
+    setLoading(true);
+
     try {
-      const r = await ordersApi.create(items);
-      sessionStorage.removeItem("checkout_items");
-      sessionStorage.removeItem("checkout_event");
-      nav(`/orders/${r.id_factura}`);
-    } catch (e) {
-      setErr(e?.response?.data?.error || e.message);
+      // 1) Crear orden en backend → recibe clientSecret + id_factura
+      const { clientSecret, id_factura } = await ordersApi.create(items);
+
+      // 2) Confirmar pago con Stripe
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card: elements.getElement(CardElement) },
+      });
+
+      if (error) {
+        setErr(error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (paymentIntent.status === "succeeded") {
+        // 3) Notificar al backend que el pago fue exitoso
+        await ordersApi.confirm(id_factura);
+        nav(`/orders/${id_factura}?pagado=1`);
+      }
+    } catch (e2) {
+      setErr(e2?.response?.data?.error || e2.message);
     } finally {
-      setPlacing(false);
+      setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="container py-4">
-        <div className="text-muted">Cargando...</div>
-      </div>
-    );
-  }
-
-  if (!items.length) {
-    return (
-      <div className="container py-4">
-        <div className="alert alert-secondary">
-          No hay entradas seleccionadas.{" "}
-          <Link to="/">Volver a eventos</Link>
+  return (
+    <form onSubmit={submit}>
+      {/* Resumen */}
+      <div className="card mb-3">
+        <div className="card-header fw-semibold">Resumen de compra</div>
+        <div className="card-body p-0">
+          <table className="table mb-0">
+            <tbody>
+              {enriched.map((d, idx) => (
+                <tr key={idx}>
+                  <td>
+                    <div className="fw-semibold">{event?.titulo}</div>
+                    <div className="text-muted small">
+                      {d.tipo}
+                      {d.fecha_hora && ` · ${new Date(d.fecha_hora).toLocaleDateString("es-AR", { weekday: "short", day: "2-digit", month: "short" })}`}
+                    </div>
+                  </td>
+                  <td className="text-end align-middle">
+                    ${d.precio.toLocaleString("es-AR")} × {d.cantidad}
+                  </td>
+                  <td className="text-end align-middle fw-semibold">
+                    ${(d.precio * d.cantidad).toLocaleString("es-AR")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan={2} className="text-end fw-bold">Total</td>
+                <td className="text-end fw-bold" style={{ color: "#6f42c1", fontSize: 18 }}>
+                  ${total.toLocaleString("es-AR")}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="container py-4">
-      <div className="d-flex align-items-center gap-3 mb-4">
-        <button className="btn btn-outline-secondary btn-sm" onClick={() => nav(-1)}>
-          ← Volver
-        </button>
-        <h2 className="m-0">Confirmar compra</h2>
+      {/* Datos de tarjeta */}
+      <div className="card mb-3">
+        <div className="card-header fw-semibold">Datos de pago</div>
+        <div className="card-body">
+          <label className="form-label text-muted small">Número de tarjeta</label>
+          <div
+            className="form-control"
+            style={{ padding: "12px 14px", borderColor: "#e1d5e0" }}
+          >
+            <CardElement
+              options={CARD_STYLE}
+              onChange={(e) => setCardComplete(e.complete)}
+            />
+          </div>
+          <div className="form-text">
+            🔒 Pago seguro procesado por Stripe. Tu información está encriptada.
+          </div>
+
+          {/* Tarjeta de prueba */}
+          <div className="alert alert-info mt-3 py-2 small mb-0">
+            <strong>Modo test:</strong> usá la tarjeta <code>4242 4242 4242 4242</code>, fecha futura y cualquier CVV.
+          </div>
+        </div>
       </div>
 
       {err && <div className="alert alert-danger">{err}</div>}
 
-      <div className="row g-4">
-        {/* Resumen de entradas */}
-        <div className="col-12 col-lg-8">
-          <div className="card">
-            <div className="card-body">
-              <h5 className="mb-3">Resumen de entradas</h5>
+      <button
+        className="btn w-100 fw-bold py-3"
+        style={{ background: "#6f42c1", color: "#fff", borderRadius: 10, fontSize: 16 }}
+        disabled={loading || !cardComplete || !stripe}
+      >
+        {loading
+          ? <><span className="spinner-border spinner-border-sm me-2" />Procesando pago...</>
+          : `Pagar $${total.toLocaleString("es-AR")}`
+        }
+      </button>
+    </form>
+  );
+}
 
-              {details.map((d, idx) => (
-                <div
-                  key={idx}
-                  className="d-flex align-items-start justify-content-between py-3"
-                  style={{ borderBottom: idx < details.length - 1 ? "1px solid #f0f0f0" : "none" }}
-                >
-                  <div>
-                    <div className="fw-semibold">{d.evento || `Entrada #${d.id_entrada}`}</div>
-                    <div className="text-muted small">
-                      {d.tipo}
-                      {d.fecha_hora && (
-                        <> · {new Date(d.fecha_hora).toLocaleString("es-AR", {
-                          day: "2-digit", month: "short", year: "numeric",
-                          hour: "2-digit", minute: "2-digit"
-                        })}</>
-                      )}
-                      {d.ciudad && <> · {d.ciudad}</>}
-                    </div>
-                    <div className="text-muted small mt-1">
-                      ${d.precio.toLocaleString("es-AR")} × {d.cantidad}
-                    </div>
-                  </div>
-                  <div className="fw-semibold text-end" style={{ minWidth: 90 }}>
-                    ${(d.precio * d.cantidad).toLocaleString("es-AR")}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+// ─── WRAPPER CON ELEMENTS ─────────────────────────────────────────────────────
+export default function Checkout() {
+  const nav = useNavigate();
 
-        {/* Panel de total y pago */}
-        <div className="col-12 col-lg-4">
-          <div className="card" style={{ position: "sticky", top: 20 }}>
-            <div className="card-body">
-              <h5 className="mb-3">Total</h5>
+  // Lee los datos desde sessionStorage (así los pasa EventDetail)
+  const items = JSON.parse(sessionStorage.getItem("checkout_items") || "null");
+  const event = JSON.parse(sessionStorage.getItem("checkout_event") || "null");
 
-              <div className="d-flex justify-content-between mb-1">
-                <span className="text-muted">Entradas</span>
-                <span>{details.reduce((a, d) => a + d.cantidad, 0)}</span>
-              </div>
+  useEffect(() => {
+    if (!items || !event) nav("/");
+  }, []);
 
-              <div className="d-flex justify-content-between mb-3">
-                <span className="text-muted">Subtotal</span>
-                <span>${total.toLocaleString("es-AR")}</span>
-              </div>
+  if (!items || !event) return null;
 
-              <div
-                className="d-flex justify-content-between fw-bold fs-5 mb-4 pt-3"
-                style={{ borderTop: "2px solid #eee" }}
-              >
-                <span>Total</span>
-                <span>${total.toLocaleString("es-AR")}</span>
-              </div>
-
-              {/* Método de pago */}
-              <div className="mb-3">
-                <div className="text-muted small mb-2">Método de pago</div>
-                <div
-                  className="d-flex align-items-center gap-2 p-2 rounded"
-                  style={{ border: "1px solid #009ee3", background: "#f0f9ff" }}
-                >
-                  <span style={{ color: "#009ee3", fontWeight: 700, fontSize: 14 }}>
-                    Mercado Pago
-                  </span>
-                </div>
-              </div>
-
-              <button
-                className="btn btn-success w-100"
-                disabled={placing}
-                onClick={placeOrder}
-              >
-                {placing ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" />
-                    Procesando...
-                  </>
-                ) : (
-                  `Pagar $${total.toLocaleString("es-AR")}`
-                )}
-              </button>
-
-              <p className="text-muted small text-center mt-2 mb-0">
-                Al confirmar aceptás los términos y condiciones de Bubble.
-              </p>
-            </div>
-          </div>
+  return (
+    <div className="container py-4">
+      <div className="row justify-content-center">
+        <div className="col-12 col-md-7 col-lg-6">
+          <h2 className="fw-bold mb-4">Checkout</h2>
+          <Elements stripe={stripePromise}>
+            <CheckoutForm items={items} event={event} />
+          </Elements>
         </div>
       </div>
     </div>

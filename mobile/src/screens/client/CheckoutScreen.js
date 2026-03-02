@@ -3,11 +3,14 @@ import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert
 } from "react-native";
+import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
 import { ordersApi } from "../../api";
 import { colors, fonts, common } from "../../theme";
 
-export default function CheckoutScreen({ route, navigation }) {
-  const { items, event } = route.params;
+const STRIPE_PUBLIC_KEY = "pk_test_51T6PDECjpb2GzxKpbfQS5AtkrHMbjanVtprZeRauICK0faxHMPGjN9rNIS5IJ3N3x3egDKBxUsd2DsFZ0sP8HcFV00Swlnwl97";
+
+function CheckoutForm({ items, event, navigation }) {
+  const { confirmPayment } = useStripe();
   const [loading, setLoading] = useState(false);
 
   const enriched = items.map((item) => {
@@ -16,16 +19,37 @@ export default function CheckoutScreen({ route, navigation }) {
       const e = f.entradas.find((e) => e.id_entrada === item.id_entrada);
       if (e) { entrada = e; fecha = f; break; }
     }
-    return { ...item, tipo: entrada?.tipo ?? "Entrada", precio: Number(entrada?.precio ?? 0), fecha_hora: fecha?.fecha_hora ?? null };
+    return {
+      ...item,
+      tipo: entrada?.tipo ?? "Entrada",
+      precio: Number(entrada?.precio ?? 0),
+      fecha_hora: fecha?.fecha_hora ?? null,
+    };
   });
 
   const total = enriched.reduce((acc, d) => acc + d.precio * d.cantidad, 0);
 
-  const confirm = async () => {
+  const submit = async () => {
     setLoading(true);
     try {
-      const r = await ordersApi.create(items);
-      navigation.replace("OrderDetail", { id: r.id_factura });
+      // 1) Crear orden en backend
+      const { clientSecret, id_factura } = await ordersApi.create(items);
+
+      // 2) Confirmar pago con Stripe
+      const { error, paymentIntent } = await confirmPayment(clientSecret, {
+        paymentMethodType: "Card",
+      });
+
+      if (error) {
+        Alert.alert("Error", error.message);
+        return;
+      }
+
+      if (paymentIntent.status === "Succeeded") {
+        // 3) Notificar al backend
+        await ordersApi.confirm(id_factura);
+        navigation.replace("OrderDetail", { id: id_factura, pagado: true });
+      }
     } catch (e) {
       Alert.alert("Error", e?.response?.data?.error || e.message);
     } finally {
@@ -34,14 +58,17 @@ export default function CheckoutScreen({ route, navigation }) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Resumen de compra</Text>
-
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        {/* Resumen */}
+        <Text style={styles.sectionTitle}>Resumen de compra</Text>
         {enriched.map((d, idx) => (
           <View key={idx} style={common.card}>
             <Text style={styles.rowTitle}>{event?.titulo}</Text>
-            <Text style={styles.rowSub}>{d.tipo}{d.fecha_hora && ` · ${new Date(d.fecha_hora).toLocaleDateString("es-AR")}`}</Text>
+            <Text style={styles.rowSub}>
+              {d.tipo}
+              {d.fecha_hora && ` · ${new Date(d.fecha_hora).toLocaleDateString("es-AR")}`}
+            </Text>
             <Text style={styles.rowSub}>${d.precio.toLocaleString("es-AR")} × {d.cantidad}</Text>
             <Text style={styles.rowPrice}>${(d.precio * d.cantidad).toLocaleString("es-AR")}</Text>
           </View>
@@ -52,15 +79,23 @@ export default function CheckoutScreen({ route, navigation }) {
           <Text style={styles.totalValue}>${total.toLocaleString("es-AR")}</Text>
         </View>
 
-        <View style={styles.metodoPago}>
-          <Text style={styles.metodoLabel}>Método de pago</Text>
-          <Text style={styles.metodoValue}>Mercado Pago</Text>
+        {/* Info test */}
+        <View style={styles.testCard}>
+          <Text style={styles.testTitle}>🧪 Modo test</Text>
+          <Text style={styles.testText}>
+            Usá la tarjeta <Text style={styles.testCode}>4242 4242 4242 4242</Text>{"\n"}
+            Fecha: cualquier fecha futura · CVV: cualquier número
+          </Text>
+        </View>
+
+        <View style={styles.secureRow}>
+          <Text style={styles.secureText}>🔒 Pago seguro procesado por Stripe</Text>
         </View>
       </ScrollView>
 
       <TouchableOpacity
-        style={[common.btnPrimary, { margin: 16, backgroundColor: colors.success }]}
-        onPress={confirm}
+        style={[common.btnPrimary, styles.payBtn, loading && { opacity: 0.7 }]}
+        onPress={submit}
         disabled={loading}
       >
         {loading
@@ -72,16 +107,33 @@ export default function CheckoutScreen({ route, navigation }) {
   );
 }
 
+export default function CheckoutScreen({ route, navigation }) {
+  const { items, event } = route.params;
+
+  return (
+    <StripeProvider publishableKey={STRIPE_PUBLIC_KEY}>
+      <CheckoutForm items={items} event={event} navigation={navigation} />
+    </StripeProvider>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: { padding: 16 },
-  title: { fontSize: 20, fontFamily: fonts.title, marginBottom: 16, color: colors.text },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
+  sectionTitle: { fontSize: 18, fontFamily: fonts.title, marginBottom: 12, color: colors.text },
   rowTitle: { fontSize: 15, fontFamily: fonts.titleSemi, marginBottom: 4 },
   rowSub: { fontSize: 13, fontFamily: fonts.body, color: colors.textMuted, marginTop: 2 },
-  rowPrice: { fontSize: 16, fontFamily: fonts.title, marginTop: 8, color: colors.text },
+  rowPrice: { fontSize: 16, fontFamily: fonts.title, marginTop: 8 },
   totalCard: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   totalLabel: { fontSize: 16, fontFamily: fonts.title },
   totalValue: { fontSize: 22, fontFamily: fonts.title, color: colors.primary },
-  metodoPago: { backgroundColor: colors.accent, borderRadius: 12, borderWidth: 1, borderColor: colors.accentBorder, padding: 14, marginBottom: 20 },
-  metodoLabel: { fontSize: 12, fontFamily: fonts.body, color: colors.textMuted, marginBottom: 4 },
-  metodoValue: { fontSize: 15, fontFamily: fonts.bodySemi, color: colors.primary },
+  testCard: {
+    backgroundColor: "#e8f4fd", borderRadius: 10, padding: 14,
+    marginBottom: 10, borderWidth: 1, borderColor: "#bee3f8"
+  },
+  testTitle: { fontFamily: fonts.bodySemi, color: "#2c5282", marginBottom: 4 },
+  testText: { fontFamily: fonts.body, color: "#2c5282", fontSize: 13, lineHeight: 20 },
+  testCode: { fontFamily: "monospace", fontWeight: "bold" },
+  secureRow: { alignItems: "center", marginBottom: 20 },
+  secureText: { fontFamily: fonts.body, color: colors.textMuted, fontSize: 13 },
+  payBtn: { margin: 16, backgroundColor: colors.primary },
 });

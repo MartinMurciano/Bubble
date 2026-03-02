@@ -24,11 +24,16 @@ export const env = {
 
   // URL del frontend (para links en emails)
   APP_URL: process.env.APP_URL || "http://localhost:5173",
+
+  // Stripe
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 };
 
-const required = ["DB_HOST", "DB_USER", "DB_NAME", "JWT_SECRET"];
+const required = ["DB_HOST", "DB_USER", "DB_NAME", "JWT_SECRET", "STRIPE_SECRET_KEY"];
 for (const k of required) {
   if (!env[k]) throw new Error(`Falta variable de entorno: ${k}`);
 }
 
 // SMTP es opcional en desarrollo (se loguea en consola si no está configurado)
+
+export const STRIPE_SECRET_KEY = env.STRIPE_SECRET_KEY;
