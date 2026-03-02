@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { http } from "../api/http.js";
+import { http } from "../../api/http.js";
 
 export default function RateEvent() {
   const { id } = useParams(); // id_fiesta

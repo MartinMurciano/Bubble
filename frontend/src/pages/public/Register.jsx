@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { authApi } from "../api/auth.js";
+import { authApi } from "../../api/auth.js";
 import { Link } from "react-router-dom";
 
 export default function Register() {
@@ -49,7 +49,7 @@ export default function Register() {
       <div className="container py-5">
         <div className="row justify-content-center">
           <div className="col-12 col-md-5 text-center">
-            <div style={{ fontSize: 64 }}>📬</div>
+            <div className="iconRegister">📬</div>
             <h3 className="mt-3 mb-2">¡Registrado con éxito!</h3>
             <p className="text-muted mb-1">
               Te enviamos un email de verificación a:
@@ -59,7 +59,7 @@ export default function Register() {
               Hacé clic en el link del email para activar tu cuenta.
               Revisá también la carpeta de spam.
             </p>
-            <Link className="btn btn-primary" to="/login">
+            <Link className="btn buttonRegisterSuccess" to="/login">
               Ir al login
             </Link>
           </div>
@@ -80,47 +80,62 @@ export default function Register() {
             <div className="card-body">
               <form onSubmit={submit} className="row g-2">
                 <div className="col-md-6">
+                  <label className="form-label text-muted small mb-1">
+                    Nombre
+                  </label>
                   <input
                     className="form-control"
-                    placeholder="Nombre"
+                    placeholder="Juan"
                     value={form.nombre}
                     onChange={(e) => setForm({ ...form, nombre: e.target.value })}
                     required
                   />
                 </div>
                 <div className="col-md-6">
+                  <label className="form-label text-muted small mb-1">
+                    Apellido
+                  </label>
                   <input
                     className="form-control"
-                    placeholder="Apellido"
+                    placeholder="Perez"
                     value={form.apellido}
                     onChange={(e) => setForm({ ...form, apellido: e.target.value })}
                     required
                   />
                 </div>
                 <div className="col-12">
+                  <label className="form-label text-muted small mb-1">
+                    Email
+                  </label>
                   <input
                     className="form-control"
                     type="email"
-                    placeholder="Email"
+                    placeholder="juanperez@gmail.com"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     required
                   />
                 </div>
                 <div className="col-md-6">
+                  <label className="form-label text-muted small mb-1">
+                    Nombre de usuario
+                  </label>
                   <input
                     className="form-control"
-                    placeholder="Username"
+                    placeholder="Juanperez"
                     value={form.username}
                     onChange={(e) => setForm({ ...form, username: e.target.value })}
                     required
                   />
                 </div>
                 <div className="col-md-6">
+                  <label className="form-label text-muted small mb-1">
+                    Contraseña
+                  </label>
                   <input
                     className="form-control"
                     type="password"
-                    placeholder="Contraseña"
+                    placeholder=""
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     required
@@ -139,14 +154,20 @@ export default function Register() {
                   />
                 </div>
                 <div className="col-md-6">
+                  <label className="form-label text-muted small mb-1">
+                    Teléfono (opcional)
+                  </label>
                   <input
                     className="form-control"
-                    placeholder="Teléfono (opcional)"
+                    placeholder="1122334455"
                     value={form.telefono}
                     onChange={(e) => setForm({ ...form, telefono: e.target.value })}
                   />
                 </div>
                 <div className="col-12">
+                  <label className="form-label text-muted small mb-1">
+                    Tipo de usuario
+                  </label>
                   <select
                     className="form-select"
                     value={form.id_rol}
@@ -157,7 +178,7 @@ export default function Register() {
                   </select>
                 </div>
 
-                <div className="col-12 mt-2">
+                <div className="col-12 mt-2 pt-2">
                   <button className="buttonLogin w-100">Registrarme</button>
                 </div>
               </form>
@@ -167,7 +188,7 @@ export default function Register() {
               <div className="small text-muted">
                 ¿Ya tenés cuenta?{" "}
                 <Link to="/login" className="buttonRegisterFromLogin">
-                  Login
+                  Logueate
                 </Link>
               </div>
             </div>

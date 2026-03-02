@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { http } from "../api/http.js";
+import { http } from "../../api/http.js";
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
@@ -45,8 +45,8 @@ export default function VerifyEmail() {
             <>
               <div style={{ fontSize: 64 }}>✅</div>
               <h3 className="mt-3 mb-2">¡Email verificado!</h3>
-              <p className="text-muted mb-4">Tu cuenta está activa. Ya podés iniciar sesión.</p>
-              <Link className="btn btn-primary" to="/login">Ir al login</Link>
+              <p className="text-muted mb-4">Tu cuenta ya está activa. Ya podés iniciar sesión.</p>
+              <Link className="btn buttonVerifyEmail" to="/login">Ir al login</Link>
             </>
           )}
           {status === "ya_verificado" && (
@@ -54,7 +54,7 @@ export default function VerifyEmail() {
               <div style={{ fontSize: 64 }}>👍</div>
               <h3 className="mt-3 mb-2">Ya estaba verificado</h3>
               <p className="text-muted mb-4">Tu email ya fue verificado anteriormente.</p>
-              <Link className="btn btn-primary" to="/login">Ir al login</Link>
+              <Link className="btn buttonVerifyEmail" to="/login">Ir al login</Link>
             </>
           )}
           {status === "error" && (
@@ -62,7 +62,7 @@ export default function VerifyEmail() {
               <div style={{ fontSize: 64 }}>❌</div>
               <h3 className="mt-3 mb-2">Link inválido o expirado</h3>
               <p className="text-muted mb-4">{msg}</p>
-              <Link className="btn btn-outline-secondary" to="/register">
+              <Link className="btn buttonVerifyEmail" to="/register">
                 Volver a registrarme
               </Link>
             </>

@@ -7,6 +7,7 @@ import "./styles/global.css";
 import "./styles/layout.css";
 import "./styles/cards.css";
 import "./styles/forms.css";
+import "./styles/admin.css"
 
 
 

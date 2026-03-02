@@ -112,8 +112,6 @@ export async function createUser(payload) {
 
 // ─── VERIFICAR EMAIL ─────────────────────────────────────────────────────────
 export async function verifyEmail(token) {
-  console.log("🔍 Buscando token:", token);
-  console.log("🔍 Largo del token:", token?.length);
   if (!token) {
     const err = new Error("Token requerido");
     err.statusCode = 400;
@@ -314,4 +312,34 @@ export async function unlockWithCode(identifier, codigo) {
   );
 
   return { desbloqueado: true };
+}
+
+export async function changePassword(identifier, newPassword) {
+  if (!newPassword || newPassword.length < 8) {
+    const err = new Error("La contraseña debe tener al menos 8 caracteres");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const [rows] = await pool.query(
+    `SELECT id_usuario FROM usuario
+     WHERE (email = :identifier OR username = :identifier)
+     AND estado = 'ACTIVO' LIMIT 1`,
+    { identifier }
+  );
+
+  if (!rows.length) {
+    const err = new Error("Usuario no encontrado");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  const password_hash = await bcrypt.hash(newPassword, 12);
+
+  await pool.query(
+    `UPDATE usuario SET password_hash = :password_hash WHERE id_usuario = :id`,
+    { password_hash, id: rows[0].id_usuario }
+  );
+
+  return { ok: true };
 }

@@ -1,8 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.webp";
 
-// El backend guarda id_rol numérico en el JWT y en localStorage:
-//   1 = ADMIN | 2 = ORGANIZADOR | 3 = CLIENTE
+// Backend guarda id_rol numérico en el JWT y en localStorage:
 const ROLE = { ADMIN: 1, ORGANIZADOR: 2, CLIENTE: 3 };
 
 export default function Navbar() {
@@ -33,7 +32,7 @@ export default function Navbar() {
 
       <div className="navbar-right d-flex align-items-center gap-3" id="nav">
         <div className="nav-item">
-          <NavLink className="nav-link" to="/">
+          <NavLink className="nav-link" to="/events">
             Eventos
           </NavLink>
         </div>

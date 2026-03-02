@@ -1,5 +1,5 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { createUser, authenticate, verifyEmail, unlockWithCode } from "./auth.service.js";
+import { createUser, authenticate, verifyEmail, unlockWithCode, changePassword } from "./auth.service.js";
 
 export const register = asyncHandler(async (req, res) => {
   const created = await createUser(req.body);
@@ -23,5 +23,12 @@ export const confirmEmail = asyncHandler(async (req, res) => {
 export const unlock = asyncHandler(async (req, res) => {
   const { identifier, codigo } = req.body;
   const data = await unlockWithCode(identifier, codigo);
+  res.json({ ok: true, ...data });
+});
+
+// POST /api/auth/change-password  { identifier, newPassword }
+export const changePass = asyncHandler(async (req, res) => {
+  const { identifier, newPassword } = req.body;
+  const data = await changePassword(identifier, newPassword);
   res.json({ ok: true, ...data });
 });

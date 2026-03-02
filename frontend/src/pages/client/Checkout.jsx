@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { ordersApi } from "../api/orders.js";
-import { eventsApi } from "../api/events.js";
+import { ordersApi } from "../../api/orders.js";
+import { eventsApi } from "../../api/events.js";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Checkout() {

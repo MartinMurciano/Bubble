@@ -69,6 +69,7 @@ export async function fetchEventDetail(id_fiesta) {
     SELECT id_fecha, fecha_hora, estado
     FROM fecha
     WHERE id_fiesta = :id_fiesta
+      AND fecha_hora > NOW()
     ORDER BY fecha_hora ASC
     `,
     { id_fiesta }

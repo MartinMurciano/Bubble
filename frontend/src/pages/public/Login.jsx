@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { authApi } from "../api/auth.js";
+import { authApi } from "../../api/auth.js";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Login() {
@@ -40,7 +40,7 @@ export default function Login() {
               {bloqueado && (
                 <div className="mt-2">
                   <Link to="/unlock" className="alert-link">
-                    → Ingresar código de desbloqueo
+                    Ingresar código de desbloqueo
                   </Link>
                 </div>
               )}
@@ -62,6 +62,7 @@ export default function Login() {
                   onChange={(e) => setIdentifier(e.target.value)}
                   required
                 />
+                
                 <input
                   className="form-control"
                   type="password"

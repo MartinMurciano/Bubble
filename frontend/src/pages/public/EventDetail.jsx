@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { eventsApi } from "../api/events.js";
+import { eventsApi } from "../../api/events.js";
 
 export default function EventDetail() {
   const { id } = useParams();

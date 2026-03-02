@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ordersApi } from "../api/orders.js";
+import { ordersApi } from "../../api/orders.js";
 import { Link } from "react-router-dom";
 
 export default function MyOrders() {

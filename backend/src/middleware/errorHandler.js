@@ -5,5 +5,7 @@ export function errorHandler(err, _req, res, _next) {
   res.status(status).json({
     error: err.message || "Error interno",
     details: err.details || undefined,
+    bloqueado: err.bloqueado || undefined,
+    requiere_verificacion: err.requiere_verificacion || undefined,
   });
 }
