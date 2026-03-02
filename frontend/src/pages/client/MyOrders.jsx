@@ -31,7 +31,7 @@ export default function MyOrders() {
               <div className="card h-100">
                 <div className="card-body">
                   <div className="d-flex justify-content-between mb-2">
-                    <span className="fw-semibold">Compra #{o.id_factura}</span>
+                    <span className="fw-semibold">Nro. de compra #{o.id_factura}</span>
                     <span
                       className={`badge ${
                         o.estado_pago === "APROBADO"
@@ -60,7 +60,7 @@ export default function MyOrders() {
 
                 <div className="card-footer bg-white border-0 pt-0 d-grid gap-2">
                   <Link
-                    className="btn btn-outline-primary btn-sm"
+                    className="btn buttonDetails"
                     to={`/orders/${o.id_factura}`}
                   >
                     Ver detalle y tickets

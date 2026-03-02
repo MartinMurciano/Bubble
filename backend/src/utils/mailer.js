@@ -107,7 +107,7 @@ export async function sendInvoiceEmail({ email, nombre, factura, detalles, pdfBu
         <div style="padding:28px 32px;">
           <p style="font-size:15px;">Hola <strong>${nombre}</strong>, ¡tu compra fue procesada con éxito!</p>
 
-          <div style="background:#f8f4ff;border-radius:8px;padding:14px 18px;margin:16px 0;display:flex;justify-content:space-between;">
+          <div style="background:#A380A9;border-radius:8px;padding:14px 18px;margin:16px 0;display:flex;justify-content:space-between;">
             <div>
               <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Factura</div>
               <div style="font-weight:700;color:#6f42c1;font-size:16px;">#${String(factura.id_factura).padStart(6, "0")}</div>
@@ -125,7 +125,7 @@ export async function sendInvoiceEmail({ email, nombre, factura, detalles, pdfBu
           <!-- Tabla de detalles -->
           <table style="width:100%;border-collapse:collapse;margin-top:16px;">
             <thead>
-              <tr style="background:#f0ebff;">
+              <tr style="background:#A380A9;">
                 <th style="padding:10px 12px;text-align:left;font-size:12px;color:#6f42c1;text-transform:uppercase;">Evento</th>
                 <th style="padding:10px 12px;text-align:center;font-size:12px;color:#6f42c1;text-transform:uppercase;">Cant.</th>
                 <th style="padding:10px 12px;text-align:right;font-size:12px;color:#6f42c1;text-transform:uppercase;">Subtotal</th>

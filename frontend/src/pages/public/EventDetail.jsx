@@ -67,7 +67,7 @@ export default function EventDetail() {
     <div className="container py-4">
       {/* Encabezado del evento */}
       <div className="mb-4">
-        <Link to="/" className="btn btn-outline-secondary btn-sm mb-3">
+        <Link to="/" className="btn buttonVolver">
           ← Volver
         </Link>
 

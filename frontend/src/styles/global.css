@@ -32,6 +32,13 @@ body {
     margin-right: 10px;
   }
 
+.buttonVolver{
+    color: black;
+    margin-bottom: 10px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+
 /* LOGIN */
 .buttonLogin{
     width: 100%;

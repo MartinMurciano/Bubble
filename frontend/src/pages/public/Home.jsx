@@ -144,15 +144,6 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="text-center mt-4">
-              <Link
-                to="/events"
-                className="btn px-4 py-2 fw-semibold"
-                style={{ background: "#6f42c1", color: "#fff", borderRadius: 10 }}
-              >
-                Ver más eventos
-              </Link>
-            </div>
           </>
         )}
       </div>

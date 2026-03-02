@@ -27,7 +27,13 @@
     },
     "plugins": [
       "expo-font",
-      "@stripe/stripe-react-native"
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.bubble",
+          "enableGooglePay": false
+        }
+      ]
     ]
   }
 }

@@ -158,11 +158,9 @@ if ((p * 10) % 5 !== 0) {
 
   if (!finished) {
     const [maxDateRows] = await pool.query(
-      `
-      SELECT MAX(fecha_hora) AS last_date
+      `SELECT MAX(fecha_hora) AS last_date
       FROM fecha
-      WHERE id_fiesta = :id_fiesta
-      `,
+      WHERE id_fiesta = :id_fiesta`,
       { id_fiesta }
     );
     const lastDate = maxDateRows?.[0]?.last_date;
@@ -171,13 +169,8 @@ if ((p * 10) % 5 !== 0) {
       err.statusCode = 409;
       throw err;
     }
-    finished = new Date(lastDate).getTime() < Date.now();
-  }
-
-  if (!finished) {
-    const err = new Error("Solo podés calificar cuando el evento haya finalizado");
-    err.statusCode = 409;
-    throw err;
+    // Comparar en UTC para evitar problemas de zona horaria
+    finished = new Date(lastDate.toString().replace(" ", "T") + "Z") < new Date();
   }
 
   // 2) verificar compra: usuario compró alguna entrada de ese evento
