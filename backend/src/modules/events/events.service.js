@@ -66,7 +66,7 @@ export async function fetchEventDetail(id_fiesta) {
   // 2) fechas del evento
   const [dates] = await pool.query(
     `
-    SELECT id_fecha, fecha_hora, estado
+    SELECT id_fecha, fecha_hora, estado, ubicacion, ciudad, provincia
     FROM fecha
     WHERE id_fiesta = :id_fiesta
       AND fecha_hora > NOW()
@@ -80,7 +80,7 @@ export async function fetchEventDetail(id_fiesta) {
     `
     SELECT
       e.id_entrada, e.id_fecha, e.precio, e.stock_total, e.stock_disponible, e.estado,
-      te.id_tipo_entrada, te.nombre AS tipo
+      te.id_tipo_entrada, COALESCE(e.nombre_custom, te.nombre) AS tipo
     FROM entrada e
     JOIN tipo_entrada te ON te.id_tipo_entrada = e.id_tipo_entrada
     JOIN fecha fe ON fe.id_fecha = e.id_fecha
@@ -241,6 +241,20 @@ export async function fetchPopularEvents() {
     ORDER BY promedio DESC, cantidad DESC
     LIMIT 10
     `
+  );
+  return rows;
+}
+
+export async function fetchEventRatings(id_fiesta) {
+  const [rows] = await pool.query(
+    `SELECT
+      c.puntaje, c.comentario, c.fecha_calificacion,
+      u.nombre, u.apellido
+     FROM calificacion c
+     JOIN usuario u ON u.id_usuario = c.id_usuario
+     WHERE c.id_fiesta = :id_fiesta
+     ORDER BY c.fecha_calificacion DESC`,
+    { id_fiesta }
   );
   return rows;
 }

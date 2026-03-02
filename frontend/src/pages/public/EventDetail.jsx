@@ -9,6 +9,7 @@ export default function EventDetail() {
   const [event, setEvent] = useState(null);
   const [sel, setSel] = useState({});
   const [err, setErr] = useState("");
+  const [ratings, setRatings] = useState([]);
 
   useEffect(() => {
     eventsApi
@@ -16,6 +17,10 @@ export default function EventDetail() {
       .then(setEvent)
       .catch((e) => setErr(e?.response?.data?.error || e.message));
   }, [id]);
+
+  useEffect(() => {
+  eventsApi.ratings(id).then(setRatings).catch(() => {});
+}, [id]);
 
   const totalQty = useMemo(
     () => Object.values(sel).reduce((a, b) => a + Number(b || 0), 0),
@@ -196,6 +201,28 @@ export default function EventDetail() {
           >
             Continuar · {totalQty} entrada{totalQty > 1 ? "s" : ""} · ${totalPrice.toLocaleString("es-AR")}
           </button>
+        </div>
+      )}
+      {/* Calificaciones */}
+      {ratings.length > 0 && (
+        <div className="mt-4">
+          <h4 className="mb-3">
+            Calificaciones
+            <span className="text-muted fs-6 ms-2">
+              ({ratings.length}) · ⭐ {(ratings.reduce((a, r) => a + r.puntaje, 0) / ratings.length).toFixed(1)}
+            </span>
+          </h4>
+          {ratings.map((r, idx) => (
+            <div key={idx} className="card mb-2">
+              <div className="card-body py-2">
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="fw-semibold">{r.nombre} {r.apellido}</span>
+                  <span>{"⭐".repeat(Math.round(r.puntaje))} <span className="text-muted small">({r.puntaje})</span></span>
+                </div>
+                {r.comentario && <p className="text-muted small mb-0 mt-1">{r.comentario}</p>}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

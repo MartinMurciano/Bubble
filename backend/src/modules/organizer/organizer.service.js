@@ -57,9 +57,9 @@ export async function createFiesta(id_organizador, payload) {
 }
 
 export async function createFecha(id_organizador, id_fiesta, payload) {
-  const { fecha_hora } = payload;
-  if (!fecha_hora) {
-    const err = new Error("Falta campo: fecha_hora (YYYY-MM-DD HH:MM:SS)");
+  const { fecha_hora, ubicacion, ciudad, provincia } = payload;
+  if (!fecha_hora || !ubicacion) {
+    const err = new Error("Faltan campos: fecha_hora, ubicacion");
     err.statusCode = 400;
     throw err;
   }
@@ -76,10 +76,11 @@ export async function createFecha(id_organizador, id_fiesta, payload) {
   }
 
   const [result] = await pool.query(
-    `INSERT INTO fecha (id_fiesta, fecha_hora) VALUES (:id_fiesta, :fecha_hora)`,
-    { id_fiesta, fecha_hora }
+    `INSERT INTO fecha (id_fiesta, fecha_hora, ubicacion, ciudad, provincia) 
+    VALUES (:id_fiesta, :fecha_hora, :ubicacion, :ciudad, :provincia)`,
+    { id_fiesta, fecha_hora, ubicacion, ciudad: ciudad || null, provincia: provincia || null }
   );
-
+  
   return { id_fecha: result.insertId };
 }
 
@@ -112,20 +113,20 @@ export async function createEntradasForFecha(id_organizador, id_fecha, payload) 
   const values = [];
   const params = {};
   entradas.forEach((e, i) => {
-    const id_tipo_entrada = Number(e.id_tipo_entrada);
+    const nombre_custom = String(e.nombre || "").trim();
     const precio = Number(e.precio);
     const stock_total = Number(e.stock_total);
 
-    if (!id_tipo_entrada || Number.isNaN(precio) || Number.isNaN(stock_total)) {
-      throw Object.assign(new Error("Entrada inválida (id_tipo_entrada, precio, stock_total)"), {
+    if (!nombre_custom || Number.isNaN(precio) || Number.isNaN(stock_total)) {
+      throw Object.assign(new Error("Entrada inválida (nombre, precio, stock_total)"), {
         statusCode: 400,
       });
     }
 
     values.push(
-      `(:id_fecha, :id_tipo_${i}, :precio_${i}, :stock_total_${i}, :stock_disp_${i})`
+      `(:id_fecha, 1, :nombre_${i}, :precio_${i}, :stock_total_${i}, :stock_disp_${i})`
     );
-    params[`id_tipo_${i}`] = id_tipo_entrada;
+    params[`nombre_${i}`] = nombre_custom;
     params[`precio_${i}`] = precio;
     params[`stock_total_${i}`] = stock_total;
     params[`stock_disp_${i}`] = stock_total;
@@ -135,7 +136,7 @@ export async function createEntradasForFecha(id_organizador, id_fecha, payload) 
 
   const sql = `
     INSERT INTO entrada
-      (id_fecha, id_tipo_entrada, precio, stock_total, stock_disponible)
+      (id_fecha, id_tipo_entrada, nombre_custom, precio, stock_total, stock_disponible)
     VALUES
       ${values.join(", ")}
   `;
@@ -201,7 +202,7 @@ export async function fetchEventStats(id_organizador, id_fiesta) {
       fi.titulo AS evento,
       fe.id_fecha,
       fe.fecha_hora,
-      te.nombre AS tipo_entrada,
+      COALESCE(e.nombre_custom, te.nombre) AS tipo_entrada,
       e.stock_total,
       e.stock_disponible,
       (e.stock_total - e.stock_disponible) AS vendidas
@@ -270,7 +271,7 @@ export async function fetchMyEventDetail(id_organizador, id_fiesta) {
     `
     SELECT
       e.id_entrada, e.id_fecha, e.precio, e.stock_total, e.stock_disponible, e.estado,
-      te.id_tipo_entrada, te.nombre AS tipo
+      te.id_tipo_entrada, COALESCE(e.nombre_custom, te.nombre) AS tipo
     FROM entrada e
     JOIN tipo_entrada te ON te.id_tipo_entrada = e.id_tipo_entrada
     WHERE e.id_fecha IN (${dates.map(() => "?").join(",") || "NULL"})

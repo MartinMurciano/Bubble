@@ -1,5 +1,12 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { fetchEvents, fetchEventDetail, rateFiesta, fetchPopularEvents } from "./events.service.js";
+import { fetchEvents, fetchEventDetail, rateFiesta, fetchPopularEvents, fetchEventRatings } from "./events.service.js";
+
+
+export const getEventRatings = asyncHandler(async (req, res) => {
+  const id_fiesta = Number(req.params.id);
+  const data = await fetchEventRatings(id_fiesta);
+  res.json({ ok: true, data });
+});
 
 export const listEvents = asyncHandler(async (req, res) => {
   const data = await fetchEvents(req.query);
@@ -25,4 +32,6 @@ export const popularEvents = asyncHandler(async (_req, res) => {
   const data = await fetchPopularEvents();
   res.json({ ok: true, data });
 });
+
+
 

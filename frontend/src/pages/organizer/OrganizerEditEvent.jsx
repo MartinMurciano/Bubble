@@ -2,15 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { organizerApi } from "../../api/organizer.js";
 import { eventsApi } from "../../api/events.js";
+import LocationAutocomplete from "../../components/LocationAutocomplete.jsx";
 
 const ESTADOS_EVENTO = ["BORRADOR", "PUBLICADO", "CANCELADO", "FINALIZADO"];
-const TIPOS_ENTRADA = [
-  { id_tipo_entrada: 1, nombre: "General" },
-  { id_tipo_entrada: 2, nombre: "VIP" },
-  { id_tipo_entrada: 3, nombre: "Ultra VIP" },
-];
-
-const emptyTicket = () => ({ id_tipo_entrada: 1, precio: "", stock_total: "" });
+const emptyTicket = () => ({ nombre: "", precio: "", stock_total: "" });
 
 export default function OrganizerEditEvent() {
   const { id } = useParams();
@@ -35,7 +30,7 @@ export default function OrganizerEditEvent() {
 
   // Agregar nueva fecha
   const [showAddDate, setShowAddDate] = useState(false);
-  const [newDate, setNewDate] = useState("");
+  const [newDate, setNewDate] = useState({ fecha_hora: "", ubicacion: "", ciudad: "", provincia: "" });
   const [addingDate, setAddingDate] = useState(false);
 
   // Agregar entradas a una fecha existente
@@ -140,14 +135,19 @@ export default function OrganizerEditEvent() {
   // Agregar nueva fecha
   const submitAddDate = async (e) => {
     e.preventDefault();
-    if (!newDate) return;
+    if (!newDate.fecha_hora || !newDate.ubicacion) return;
     setErr("");
     setAddingDate(true);
     try {
-      await organizerApi.addDate(id, { fecha_hora: newDate });
+      await organizerApi.addDate(id, {
+        fecha_hora: newDate.fecha_hora.replace("T", " ") + ":00",
+        ubicacion: newDate.ubicacion,
+        ciudad: newDate.ciudad,
+        provincia: newDate.provincia,
+      });
       flash("Fecha agregada.");
       setShowAddDate(false);
-      setNewDate("");
+      setNewDate({ fecha_hora: "", ubicacion: "", ciudad: "", provincia: "" });
       reload();
     } catch (e2) {
       setErr(e2?.response?.data?.error || e2.message);
@@ -163,7 +163,7 @@ export default function OrganizerEditEvent() {
     setAddingTickets(true);
     try {
       const entradas = newTickets.map((t) => ({
-        id_tipo_entrada: Number(t.id_tipo_entrada),
+        nombre: t.nombre,
         precio: Number(t.precio),
         stock_total: Number(t.stock_total),
       }));
@@ -275,19 +275,46 @@ export default function OrganizerEditEvent() {
                 <form onSubmit={submitAddDate} className="border rounded p-3 mb-4"
                   style={{ background: "#f8f4ff" }}>
                   <h6 className="mb-2">Nueva fecha</h6>
-                  <div className="row g-2 align-items-end">
-                    <div className="col-12 col-sm-8">
-                      <label className="form-label small">Fecha y hora</label>
+                  <div className="row g-2">
+                    <div className="col-12 col-md-6">
+                      <label className="form-label small">Fecha y hora *</label>
                       <input
                         type="datetime-local"
                         className="form-control"
-                        value={newDate}
-                        onChange={(e) => setNewDate(e.target.value)}
+                        value={newDate.fecha_hora}
+                        onChange={(e) => setNewDate({ ...newDate, fecha_hora: e.target.value })}
                         required
                       />
                     </div>
-                    <div className="col-12 col-sm-4">
-                      <button className="btn btn-primary w-100" disabled={addingDate}>
+                    <div className="col-12">
+                      <label className="form-label small">Ubicación / Venue *</label>
+                      <LocationAutocomplete
+                        value={newDate.ubicacion}
+                        onChange={({ ubicacion, ciudad, provincia }) =>
+                          setNewDate((f) => ({
+                            ...f,
+                            ubicacion,
+                            ciudad: ciudad || f.ciudad,
+                            provincia: provincia || f.provincia,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="col-12 col-md-6">
+                      <label className="form-label small">Ciudad *</label>
+                      <input className="form-control form-control-sm"
+                        value={newDate.ciudad}
+                        onChange={(e) => setNewDate({ ...newDate, ciudad: e.target.value })}
+                        required />
+                    </div>
+                    <div className="col-12 col-md-6">
+                      <label className="form-label small">Provincia</label>
+                      <input className="form-control form-control-sm"
+                        value={newDate.provincia}
+                        onChange={(e) => setNewDate({ ...newDate, provincia: e.target.value })} />
+                    </div>
+                    <div className="col-12">
+                      <button className="btn btn-primary" disabled={addingDate}>
                         {addingDate ? "Guardando..." : "Agregar fecha"}
                       </button>
                     </div>
@@ -327,18 +354,16 @@ export default function OrganizerEditEvent() {
                       {newTickets.map((t, idx) => (
                         <div key={idx} className="row g-2 align-items-end mb-2">
                           <div className="col-12 col-sm-4">
-                            <label className="form-label small">Tipo</label>
-                            <select className="form-select form-select-sm"
-                              value={t.id_tipo_entrada}
+                            <label className="form-label small">Nombre</label>
+                            <input className="form-control form-control-sm"
+                              placeholder="Ej: General, VIP..."
+                              value={t.nombre}
                               onChange={(e) => {
                                 const copy = [...newTickets];
-                                copy[idx].id_tipo_entrada = e.target.value;
+                                copy[idx].nombre = e.target.value;
                                 setNewTickets(copy);
-                              }}>
-                              {TIPOS_ENTRADA.map((tp) => (
-                                <option key={tp.id_tipo_entrada} value={tp.id_tipo_entrada}>{tp.nombre}</option>
-                              ))}
-                            </select>
+                              }}
+                              required />
                           </div>
                           <div className="col-6 col-sm-3">
                             <label className="form-label small">Precio ($)</label>

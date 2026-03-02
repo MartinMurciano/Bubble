@@ -17,4 +17,6 @@ export const eventsApi = {
 
   // Géneros para filtros y formularios de creación
   generos: () => http.get("/generos").then((r) => r.data.data),
+
+  ratings: (id) => http.get(`/events/${id}/ratings`).then((r) => r.data.data),
 };
