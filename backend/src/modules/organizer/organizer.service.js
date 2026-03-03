@@ -19,16 +19,13 @@ export async function createFiesta(id_organizador, payload) {
   const {
     titulo,
     descripcion = null,
-    ubicacion,
-    ciudad = null,
-    provincia = null,
     imagen_url = null,
     id_genero,
     estado = "BORRADOR",
   } = payload;
 
-  if (!titulo || !ubicacion || !id_genero) {
-    const err = new Error("Faltan campos: titulo, ubicacion, id_genero");
+  if (!titulo || !id_genero) {
+    const err = new Error("Faltan campos: titulo, id_genero");
     err.statusCode = 400;
     throw err;
   }
@@ -36,16 +33,13 @@ export async function createFiesta(id_organizador, payload) {
   const [result] = await pool.query(
     `
     INSERT INTO fiesta
-      (titulo, descripcion, ubicacion, ciudad, provincia, imagen_url, estado, id_organizador, id_genero)
+      (titulo, descripcion, imagen_url, estado, id_organizador, id_genero)
     VALUES
-      (:titulo, :descripcion, :ubicacion, :ciudad, :provincia, :imagen_url, :estado, :id_organizador, :id_genero)
+      (:titulo, :descripcion, :imagen_url, :estado, :id_organizador, :id_genero)
     `,
     {
       titulo,
       descripcion,
-      ubicacion,
-      ciudad,
-      provincia,
       imagen_url,
       estado,
       id_organizador,
@@ -124,7 +118,7 @@ export async function createEntradasForFecha(id_organizador, id_fecha, payload) 
     }
 
     values.push(
-      `(:id_fecha, 1, :nombre_${i}, :precio_${i}, :stock_total_${i}, :stock_disp_${i})`
+      `(:id_fecha, :nombre_${i}, :precio_${i}, :stock_total_${i}, :stock_disp_${i})`
     );
     params[`nombre_${i}`] = nombre_custom;
     params[`precio_${i}`] = precio;
@@ -136,7 +130,7 @@ export async function createEntradasForFecha(id_organizador, id_fecha, payload) 
 
   const sql = `
     INSERT INTO entrada
-      (id_fecha, id_tipo_entrada, nombre_custom, precio, stock_total, stock_disponible)
+      (id_fecha, nombre_custom, precio, stock_total, stock_disponible)
     VALUES
       ${values.join(", ")}
   `;
@@ -230,11 +224,10 @@ export async function fetchEventStats(id_organizador, id_fiesta) {
 }
 
 export async function fetchMyEventDetail(id_organizador, id_fiesta) {
-  // 1) validar propiedad + traer evento
   const [events] = await pool.query(
     `
     SELECT
-      f.id_fiesta, f.titulo, f.descripcion, f.ubicacion, f.ciudad, f.provincia,
+      f.id_fiesta, f.titulo, f.descripcion,
       f.imagen_url, f.estado, f.fecha_creacion,
       g.id_genero, g.nombre AS genero
     FROM fiesta f
@@ -254,10 +247,9 @@ export async function fetchMyEventDetail(id_organizador, id_fiesta) {
 
   const event = events[0];
 
-  // 2) fechas del evento
   const [dates] = await pool.query(
     `
-    SELECT id_fecha, fecha_hora, estado
+    SELECT id_fecha, fecha_hora, estado, ubicacion, ciudad, provincia
     FROM fecha
     WHERE id_fiesta = :id_fiesta
     ORDER BY fecha_hora ASC
@@ -265,20 +257,18 @@ export async function fetchMyEventDetail(id_organizador, id_fiesta) {
     { id_fiesta }
   );
 
-  // 3) entradas por fecha
   const [tickets] = await pool.query(
     `
     SELECT
       e.id_entrada, e.id_fecha, e.precio, e.stock_total, e.stock_disponible, e.estado,
       e.nombre_custom AS tipo
     FROM entrada e
-    WHERE e.id_fecha IN (...)
+    WHERE e.id_fecha IN (${dates.map(() => "?").join(",") || "NULL"})
     ORDER BY e.id_fecha ASC, e.id_entrada ASC
     `,
     dates.map((d) => d.id_fecha)
   );
 
-  // agrupar entradas por fecha
   const ticketsByDate = new Map();
   for (const t of tickets) {
     if (!ticketsByDate.has(t.id_fecha)) ticketsByDate.set(t.id_fecha, []);

@@ -3,6 +3,7 @@ import { organizerApi } from "../../api/organizer.js";
 import { eventsApi } from "../../api/events.js";
 import { useNavigate, Link } from "react-router-dom";
 import LocationAutocomplete from "../../components/LocationAutocomplete.jsx";
+import ImageUpload from "../../components/imageUpload.jsx";
 
 export default function OrganizerCreateEvent() {
   const nav = useNavigate();
@@ -120,10 +121,11 @@ export default function OrganizerCreateEvent() {
                 </div>
 
                 <div className="col-12">
-                  <label className="form-label">URL de imagen</label>
-                  <input className="form-control" placeholder="https://..."
+                  <label className="form-label">Imagen de portada</label>
+                  <ImageUpload
                     value={eventForm.imagen_url}
-                    onChange={(e) => setEventForm({ ...eventForm, imagen_url: e.target.value })} />
+                    onChange={(url) => setEventForm({ ...eventForm, imagen_url: url })}
+                  />
                 </div>
               </div>
             </div>

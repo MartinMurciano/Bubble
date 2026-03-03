@@ -4,7 +4,6 @@ export async function fetchEvents(query) {
   const {
     q,
     id_genero,
-    ciudad,
     estado = "PUBLICADO",
     limit = 20,
     offset = 0,
@@ -12,14 +11,13 @@ export async function fetchEvents(query) {
 
   const sql = `
     SELECT
-      f.id_fiesta, f.titulo, f.ubicacion, f.ciudad, f.provincia, f.imagen_url,
+      f.id_fiesta, f.titulo, f.imagen_url,
       f.estado, f.fecha_creacion,
       g.nombre AS genero
     FROM fiesta f
     JOIN genero g ON g.id_genero = f.id_genero
     WHERE (:estado IS NULL OR f.estado = :estado)
       AND (:id_genero IS NULL OR f.id_genero = :id_genero)
-      AND (:ciudad IS NULL OR f.ciudad = :ciudad)
       AND (:q IS NULL OR f.titulo LIKE CONCAT('%', :q, '%'))
     ORDER BY f.fecha_creacion DESC
     LIMIT :limit OFFSET :offset
@@ -28,7 +26,6 @@ export async function fetchEvents(query) {
   const params = {
     estado: estado ?? null,
     id_genero: id_genero ? Number(id_genero) : null,
-    ciudad: ciudad ?? null,
     q: q ?? null,
     limit: Number(limit),
     offset: Number(offset),
@@ -43,7 +40,7 @@ export async function fetchEventDetail(id_fiesta) {
   const [events] = await pool.query(
     `
     SELECT
-      f.id_fiesta, f.titulo, f.descripcion, f.ubicacion, f.ciudad, f.provincia,
+      f.id_fiesta, f.titulo, f.descripcion,
       f.imagen_url, f.estado, f.fecha_creacion,
       f.id_organizador,
       g.id_genero, g.nombre AS genero
@@ -156,21 +153,19 @@ if ((p * 10) % 5 !== 0) {
   let finished = estado === "FINALIZADO";
 
   if (!finished) {
-    const [maxDateRows] = await pool.query(
-      `SELECT MAX(fecha_hora) AS last_date
-      FROM fecha
-      WHERE id_fiesta = :id_fiesta`,
-      { id_fiesta }
-    );
-    const lastDate = maxDateRows?.[0]?.last_date;
-    if (!lastDate) {
-      const err = new Error("El evento no tiene fechas configuradas");
-      err.statusCode = 409;
-      throw err;
-    }
-    // Comparar en UTC para evitar problemas de zona horaria
-    finished = new Date(lastDate.toString().replace(" ", "T") + "Z") < new Date();
+  const [dateRows] = await pool.query(
+    `SELECT MAX(fecha_hora) < NOW() AS finalizado, COUNT(*) AS total
+     FROM fecha
+     WHERE id_fiesta = :id_fiesta`,
+    { id_fiesta }
+  );
+  if (!dateRows?.[0]?.total) {
+    const err = new Error("El evento no tiene fechas configuradas");
+    err.statusCode = 409;
+    throw err;
   }
+  finished = dateRows?.[0]?.finalizado === 1;
+}
 
   // 2) verificar compra: usuario compró alguna entrada de ese evento
   const [buyRows] = await pool.query(
@@ -226,9 +221,6 @@ export async function fetchPopularEvents() {
     SELECT
       f.id_fiesta,
       f.titulo,
-      f.ubicacion,
-      f.ciudad,
-      f.provincia,
       f.imagen_url,
       AVG(c.puntaje) AS promedio,
       COUNT(c.id_calificacion) AS cantidad

@@ -254,7 +254,7 @@ export async function fetchMyOrderDetail(id_usuario, id_factura) {
       e.id_entrada,
       e.nombre_custom AS tipo_entrada,
       fe.id_fecha, fe.fecha_hora,
-      fi.id_fiesta, fi.titulo AS evento, fi.ubicacion, fi.ciudad, fi.provincia
+      fi.id_fiesta, fi.titulo AS evento, fe.ubicacion, fe.ciudad, fe.provincia
     FROM detalle d
     JOIN entrada e ON e.id_entrada = d.id_entrada
     JOIN fecha fe ON fe.id_fecha = e.id_fecha

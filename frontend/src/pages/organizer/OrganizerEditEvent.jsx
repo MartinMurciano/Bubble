@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { organizerApi } from "../../api/organizer.js";
 import { eventsApi } from "../../api/events.js";
 import LocationAutocomplete from "../../components/LocationAutocomplete.jsx";
+import ImageUpload from "../../components/imageUpload.jsx";
 
 const ESTADOS_EVENTO = ["BORRADOR", "PUBLICADO", "CANCELADO", "FINALIZADO"];
 const emptyTicket = () => ({ nombre: "", precio: "", stock_total: "" });
@@ -244,9 +245,11 @@ export default function OrganizerEditEvent() {
                     onChange={(e) => setEventForm({ ...eventForm, provincia: e.target.value })} />
                 </div>
                 <div className="col-12">
-                  <label className="form-label">URL de imagen</label>
-                  <input className="form-control" placeholder="https://..." value={eventForm.imagen_url}
-                    onChange={(e) => setEventForm({ ...eventForm, imagen_url: e.target.value })} />
+                  <label className="form-label">Imagen de portada</label>
+                  <ImageUpload
+                    value={eventForm.imagen_url}
+                    onChange={(url) => setEventForm({ ...eventForm, imagen_url: url })}
+                  />
                 </div>
                 <div className="col-12 mt-1">
                   <button className="btn btn-primary" disabled={savingEvent}>
