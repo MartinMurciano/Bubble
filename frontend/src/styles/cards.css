@@ -33,3 +33,12 @@
     font-size: 16px;
     cursor: pointer;
 }
+
+.cardHover:hover{
+  transform: scale(1.03);
+  transition-duration: 1s;
+}
+
+h3{
+  font-family: "Montserrat", sans-serif;
+}

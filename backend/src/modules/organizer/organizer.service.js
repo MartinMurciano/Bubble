@@ -202,16 +202,15 @@ export async function fetchEventStats(id_organizador, id_fiesta) {
       fi.titulo AS evento,
       fe.id_fecha,
       fe.fecha_hora,
-      COALESCE(e.nombre_custom, te.nombre) AS tipo_entrada,
+      e.nombre_custom AS tipo,
       e.stock_total,
       e.stock_disponible,
       (e.stock_total - e.stock_disponible) AS vendidas
     FROM fiesta fi
     JOIN fecha fe ON fe.id_fiesta = fi.id_fiesta
     JOIN entrada e ON e.id_fecha = fe.id_fecha
-    JOIN tipo_entrada te ON te.id_tipo_entrada = e.id_tipo_entrada
     WHERE fi.id_fiesta = :id_fiesta
-    ORDER BY fe.fecha_hora ASC, te.id_tipo_entrada ASC
+    ORDER BY fe.fecha_hora ASC, e.id_entrada ASC
     `,
     { id_fiesta }
   );
@@ -271,11 +270,10 @@ export async function fetchMyEventDetail(id_organizador, id_fiesta) {
     `
     SELECT
       e.id_entrada, e.id_fecha, e.precio, e.stock_total, e.stock_disponible, e.estado,
-      te.id_tipo_entrada, COALESCE(e.nombre_custom, te.nombre) AS tipo
+      e.nombre_custom AS tipo
     FROM entrada e
-    JOIN tipo_entrada te ON te.id_tipo_entrada = e.id_tipo_entrada
-    WHERE e.id_fecha IN (${dates.map(() => "?").join(",") || "NULL"})
-    ORDER BY e.id_fecha ASC, te.id_tipo_entrada ASC
+    WHERE e.id_fecha IN (...)
+    ORDER BY e.id_fecha ASC, e.id_entrada ASC
     `,
     dates.map((d) => d.id_fecha)
   );

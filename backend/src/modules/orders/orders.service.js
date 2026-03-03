@@ -252,16 +252,15 @@ export async function fetchMyOrderDetail(id_usuario, id_factura) {
     `SELECT
       d.id_detalle, d.cantidad, d.precio_unitario,
       e.id_entrada,
-      te.nombre AS tipo_entrada,
+      e.nombre_custom AS tipo_entrada,
       fe.id_fecha, fe.fecha_hora,
       fi.id_fiesta, fi.titulo AS evento, fi.ubicacion, fi.ciudad, fi.provincia
-     FROM detalle d
-     JOIN entrada e ON e.id_entrada = d.id_entrada
-     JOIN tipo_entrada te ON te.id_tipo_entrada = e.id_tipo_entrada
-     JOIN fecha fe ON fe.id_fecha = e.id_fecha
-     JOIN fiesta fi ON fi.id_fiesta = fe.id_fiesta
-     WHERE d.id_factura = :id_factura
-     ORDER BY d.id_detalle ASC`,
+    FROM detalle d
+    JOIN entrada e ON e.id_entrada = d.id_entrada
+    JOIN fecha fe ON fe.id_fecha = e.id_fecha
+    JOIN fiesta fi ON fi.id_fiesta = fe.id_fiesta
+    WHERE d.id_factura = :id_factura
+    ORDER BY d.id_detalle ASC`,
     { id_factura }
   );
 

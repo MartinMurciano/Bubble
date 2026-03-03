@@ -121,7 +121,7 @@ export default function Home() {
           <>
             <div className="row g-3">
               {events.map((ev) => (
-                <div key={ev.id_fiesta} className="col-12 col-md-6 col-lg-4">
+                <div key={ev.id_fiesta} className="col-12 col-md-6 col-lg-4 cardHover">
                   <Link to={`/events/${ev.id_fiesta}`} className="text-decoration-none">
                     <div className="card h-100 border-0 shadow-sm" style={{ borderRadius: 14, overflow: "hidden", border: "1px solid #e1d5e0" }}>
                       {ev.imagen_url ? (

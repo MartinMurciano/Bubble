@@ -94,14 +94,20 @@ export default function OrderDetailScreen({ route, navigation }) {
                   backgroundColor="#fff"
                 />
               </View>
-              <Text style={styles.codigo}>{c.codigo}</Text>
-              <View style={[styles.badge, {
-                alignSelf: "center", marginTop: 8,
-                backgroundColor: c.estado === "USADO" ? colors.danger :
-                  c.estado === "ANULADO" ? "#6c757d" : colors.success
-              }]}>
-                <Text style={styles.badgeText}>{c.estado}</Text>
-              </View>
+              {(() => {
+                const pasado = d.fecha_hora && new Date(d.fecha_hora.toString().replace(" ", "T")) < new Date();
+                const estadoVisual = c.estado !== "ACTIVO" ? c.estado : pasado ? "VENCIDO" : "ACTIVO";
+                return (
+                  <View style={[styles.badge, {
+                    alignSelf: "center", marginTop: 8,
+                    backgroundColor: estadoVisual === "USADO" ? colors.danger :
+                      estadoVisual === "ANULADO" ? "#6c757d" :
+                      estadoVisual === "VENCIDO" ? "#ffc107" : colors.success
+                  }]}>
+                    <Text style={styles.badgeText}>{estadoVisual}</Text>
+                  </View>
+                );
+              })()}
             </View>
           ))}
         </View>

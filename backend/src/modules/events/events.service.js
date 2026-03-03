@@ -80,12 +80,11 @@ export async function fetchEventDetail(id_fiesta) {
     `
     SELECT
       e.id_entrada, e.id_fecha, e.precio, e.stock_total, e.stock_disponible, e.estado,
-      te.id_tipo_entrada, COALESCE(e.nombre_custom, te.nombre) AS tipo
+      e.nombre_custom AS tipo
     FROM entrada e
-    JOIN tipo_entrada te ON te.id_tipo_entrada = e.id_tipo_entrada
     JOIN fecha fe ON fe.id_fecha = e.id_fecha
     WHERE fe.id_fiesta = :id_fiesta
-    ORDER BY fe.fecha_hora ASC, te.id_tipo_entrada ASC
+    ORDER BY fe.fecha_hora ASC, e.id_entrada ASC
     `,
     { id_fiesta }
   );

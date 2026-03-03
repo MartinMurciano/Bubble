@@ -131,12 +131,19 @@ export default function OrderDetail() {
                     <div className="font-monospace" style={{ fontSize: 10, color: "#888", wordBreak: "break-all" }}>
                       {c.codigo}
                     </div>
-                    <span className={`badge mt-2 ${
-                      c.estado === "USADO" ? "bg-danger" :
-                      c.estado === "ANULADO" ? "bg-secondary" : "bg-success"
-                    }`}>
-                      {c.estado}
-                    </span>
+                    {(() => {
+                      const pasado = d.fecha_hora && new Date(d.fecha_hora.toString().replace(" ", "T")) < new Date();
+                      const estadoVisual = c.estado !== "ACTIVO" ? c.estado : pasado ? "VENCIDO" : "ACTIVO";
+                      return (
+                        <span className={`badge mt-2 ${
+                          estadoVisual === "USADO" ? "bg-danger" :
+                          estadoVisual === "ANULADO" ? "bg-secondary" :
+                          estadoVisual === "VENCIDO" ? "bg-danger text-dark" : "bg-success"
+                        }`}>
+                          {estadoVisual}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
               ))}
