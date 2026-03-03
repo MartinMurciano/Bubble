@@ -39,7 +39,7 @@ export default function OrganizerEventStatsScreen({ route }) {
       {stats.breakdown.map((row, idx) => (
         <View key={idx} style={[common.card, styles.row]}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.rowTipo}>{row.tipo_entrada}</Text>
+            <Text style={styles.rowTipo}>{row.tipo}</Text>
             <Text style={styles.rowFecha}>
               {new Date(row.fecha_hora).toLocaleString("es-AR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
             </Text>

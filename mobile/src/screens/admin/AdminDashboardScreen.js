@@ -11,9 +11,13 @@ export default function AdminDashboardScreen({ navigation }) {
   return (
     <SafeAreaView style={[common.screen, { flex: 1 }]}>
       <View style={common.screen}>
-        <View style={common.header}>
-          <Text style={common.headerTitle}>Panel Admin</Text>
-          <TouchableOpacity onPress={logout}>
+        <View style={[common.header, { flexDirection: "row", justifyContent: "space-between", alignItems: "center" }]}>
+          {/* IZQUIERDA */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 15 }}>
+            <Text style={common.headerTitle}>Panel Admin</Text>
+          </View>
+          {/* DERECHA */}
+          <TouchableOpacity onPress={logout} style={{ paddingRight: 15}}>
             <Text style={common.logout}>Salir</Text>
           </TouchableOpacity>
         </View>

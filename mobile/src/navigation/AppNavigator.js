@@ -31,11 +31,22 @@ import AdminUsersScreen from "../screens/admin/AdminUsersScreen";
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+
+function MyOrdersStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerTintColor: colors.primary }}>
+      <Stack.Screen name="MyOrders" component={MyOrdersScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="OrderDetail" component={OrderDetailScreen} options={{ title: "Mi compra" }} />
+      <Stack.Screen name="RateEvent" component={RateEventScreen} options={{ title: "Calificar" }} />
+    </Stack.Navigator>
+  );
+}
+
 function ClienteTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.primary }}>
       <Tab.Screen name="Eventos" component={ClienteEventsStack} />
-      <Tab.Screen name="Mis compras" component={MyOrdersScreen} />
+      <Tab.Screen name="Mis compras" component={MyOrdersStack} />
     </Tab.Navigator>
   );
 }

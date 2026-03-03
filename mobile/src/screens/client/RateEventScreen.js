@@ -7,7 +7,7 @@ import { eventsApi } from "../../api";
 import { colors, fonts, common } from "../../theme";
 
 export default function RateEventScreen({ route, navigation }) {
-  const { id, titulo } = route.params;
+  const { id_fiesta, titulo } = route.params;
   const [puntaje, setPuntaje] = useState(0);
   const [comentario, setComentario] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ export default function RateEventScreen({ route, navigation }) {
     if (!puntaje) { Alert.alert("Error", "Seleccioná una puntuación"); return; }
     setLoading(true);
     try {
-      await eventsApi.rate(id, puntaje, comentario || null);
+      await eventsApi.rate(id_fiesta, puntaje, comentario || null);
       Alert.alert("¡Gracias! ⭐", "Tu calificación fue enviada.", [
         { text: "OK", onPress: () => navigation.goBack() }
       ]);

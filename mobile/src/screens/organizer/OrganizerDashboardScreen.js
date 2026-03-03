@@ -7,8 +7,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { organizerApi } from "../../api";
 import { colors, fonts, common } from "../../theme";
-import { useAuth } from "../../context/AuthContext";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../../context/AuthContext";
 
 const ESTADO_COLOR = { PUBLICADO: colors.success, BORRADOR: colors.warning, CANCELADO: colors.danger, FINALIZADO: colors.secondary };
 
@@ -30,17 +30,25 @@ export default function OrganizerDashboardScreen({ navigation }) {
   return (
     <SafeAreaView style={[common.screen, { flex: 1 }]}>
       <View style={common.screen}>
-        <View style={common.header}>
-          <Text style={common.headerTitle}>Mis eventos</Text>
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <TouchableOpacity style={styles.newBtn} onPress={() => navigation.navigate("OrganizerCreateEvent")}>
-              <Text style={styles.newBtnText}>+ Crear</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={logout}>
-              <Text style={common.logout}>Salir</Text>
-            </TouchableOpacity>
+        {/* Header */}
+        <View style={[common.header, { flexDirection: "row", justifyContent: "space-between", alignItems: "center" }]}>
+          {/* IZQUIERDA */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 15 }}>
+            <Text style={common.headerTitle}>Panel Organizador</Text>
           </View>
+          {/* DERECHA */}
+          <TouchableOpacity onPress={logout} style={{ paddingRight: 15}}>
+            <Text style={common.logout}>Salir</Text>
+          </TouchableOpacity>
         </View>
+
+        {/* Botón crear fuera del header */}
+        <TouchableOpacity
+          style={styles.createBtn}
+          onPress={() => navigation.navigate("OrganizerCreateEvent")}
+        >
+          <Text style={styles.createBtnText}>+ Crear nuevo evento</Text>
+        </TouchableOpacity>
 
         {loading
           ? <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} size="large" />
@@ -63,7 +71,7 @@ export default function OrganizerDashboardScreen({ navigation }) {
                     style={styles.statsBtn}
                     onPress={() => navigation.navigate("OrganizerEventStats", { id: item.id_fiesta, titulo: item.titulo })}
                   >
-                    <Text style={styles.statsBtnText}>📊 Ver estadísticas</Text>
+                    <Text style={styles.statsBtnText}>Ver estadísticas</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -76,8 +84,13 @@ export default function OrganizerDashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  newBtn: { backgroundColor: colors.primary, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8 },
-  newBtnText: { color: colors.white, fontFamily: fonts.bodySemi },
+  createBtn: {
+    margin: 12, marginBottom: 4,
+    backgroundColor: colors.primary,
+    borderRadius: 10, padding: 14,
+    alignItems: "center",
+  },
+  createBtnText: { color: colors.white, fontFamily: fonts.bodySemi, fontSize: 15 },
   cardRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },
   cardTitle: { fontSize: 15, fontFamily: fonts.titleSemi, flex: 1, marginRight: 8 },
   cardSub: { fontSize: 13, fontFamily: fonts.body, color: colors.textMuted, marginBottom: 10 },

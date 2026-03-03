@@ -94,7 +94,7 @@ export async function sendInvoiceEmail({ email, nombre, factura, detalles, pdfBu
   await transporter.sendMail({
     from: FROM,
     to: email,
-    subject: `Tu factura de Bubble #${String(factura.id_factura).padStart(6, "0")} 🫧`,
+    subject: `Tu factura de Bubble #${String(factura.id_factura).padStart(6, "0")} `,
     html: `
       <div style="font-family:sans-serif;max-width:580px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e1d5e0;">
         <!-- Header -->
@@ -109,15 +109,15 @@ export async function sendInvoiceEmail({ email, nombre, factura, detalles, pdfBu
 
           <div style="background:#A380A9;border-radius:8px;padding:14px 18px;margin:16px 0;display:flex;justify-content:space-between;">
             <div>
-              <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Factura</div>
+              <div style="font-size:11px;color:#fff;text-transform:uppercase;letter-spacing:1px;">Factura</div>
               <div style="font-weight:700;color:#6f42c1;font-size:16px;">#${String(factura.id_factura).padStart(6, "0")}</div>
             </div>
             <div>
-              <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Fecha</div>
+              <div style="font-size:11px;color:#fff;text-transform:uppercase;letter-spacing:1px;">Fecha</div>
               <div style="font-weight:600;font-size:14px;">${fechaStr}</div>
             </div>
             <div>
-              <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Estado</div>
+              <div style="font-size:11px;color:#fff;text-transform:uppercase;letter-spacing:1px;">Estado</div>
               <div style="font-weight:700;color:#28a745;font-size:14px;">✓ APROBADO</div>
             </div>
           </div>
@@ -126,9 +126,9 @@ export async function sendInvoiceEmail({ email, nombre, factura, detalles, pdfBu
           <table style="width:100%;border-collapse:collapse;margin-top:16px;">
             <thead>
               <tr style="background:#A380A9;">
-                <th style="padding:10px 12px;text-align:left;font-size:12px;color:#6f42c1;text-transform:uppercase;">Evento</th>
-                <th style="padding:10px 12px;text-align:center;font-size:12px;color:#6f42c1;text-transform:uppercase;">Cant.</th>
-                <th style="padding:10px 12px;text-align:right;font-size:12px;color:#6f42c1;text-transform:uppercase;">Subtotal</th>
+                <th style="padding:10px 12px;text-align:left;font-size:12px;color:#fff;text-transform:uppercase;">Evento</th>
+                <th style="padding:10px 12px;text-align:center;font-size:12px;color:#fff;text-transform:uppercase;">Cant.</th>
+                <th style="padding:10px 12px;text-align:right;font-size:12px;color:#fff;text-transform:uppercase;">Subtotal</th>
               </tr>
             </thead>
             <tbody>
@@ -145,13 +145,13 @@ export async function sendInvoiceEmail({ email, nombre, factura, detalles, pdfBu
           </table>
 
           <p style="margin-top:20px;color:#555;font-size:13px;">
-            Encontrás tu factura en PDF adjunta a este email. Presentá los códigos de ticket en el ingreso al evento.
+            Encontrás tu factura en PDF adjunta a este email.
           </p>
         </div>
 
         <!-- Footer -->
         <div style="background:#fafafa;padding:16px 32px;border-top:1px solid #e1d5e0;text-align:center;">
-          <p style="color:#aaa;font-size:12px;margin:0;">bubble · soporte@bubble.app</p>
+          <p style="color:#aaa;font-size:12px;margin:0;">Bubble · soporte@bubble.app</p>
         </div>
       </div>
     `,

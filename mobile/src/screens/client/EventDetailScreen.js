@@ -67,7 +67,7 @@ export default function EventDetailScreen({ route, navigation }) {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.entradaNombre}>{en.tipo}</Text>
                   <Text style={styles.entradaPrecio}>
-                    ${Number(en.precio).toLocaleString("es-AR")} · Disp: {en.stock_disponible}
+                    ${Number(en.precio).toLocaleString("es-AR")} 
                   </Text>
                 </View>
                 <View style={styles.counter}>

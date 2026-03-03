@@ -12,6 +12,7 @@ export const eventsApi = {
     const params = new URLSearchParams();
     if (filters.q) params.set("q", filters.q);
     if (filters.id_genero) params.set("id_genero", filters.id_genero);
+    if (filters.ciudad) params.set("ciudad", filters.ciudad);
     const qs = params.toString();
     return http.get(`/events${qs ? "?" + qs : ""}`).then((r) => r.data.data);
   },

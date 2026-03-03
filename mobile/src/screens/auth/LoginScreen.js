@@ -161,7 +161,6 @@ export default function LoginScreen({ navigation }) {
       {biometricAvailable && biometricSaved && (
         <TouchableOpacity style={styles.biometricBtn} onPress={loginWithBiometric}>
           <Text style={styles.biometricIcon}>
-            {biometricType === "Face ID" ? "🔒" : "👆"}
           </Text>
           <Text style={styles.biometricText}>Entrar con {biometricType}</Text>
         </TouchableOpacity>

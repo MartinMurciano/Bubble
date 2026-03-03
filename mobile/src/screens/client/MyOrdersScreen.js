@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import {
   View, Text, FlatList, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert
+  StyleSheet, ActivityIndicator, Alert, Image
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { ordersApi } from "../../api";
@@ -30,9 +30,17 @@ export default function MyOrdersScreen({ navigation }) {
   return (
     <SafeAreaView style={[common.screen, { flex: 1 }]}>
       <View style={common.screen}>
-        <View style={common.header}>
-          <Text style={common.headerTitle}>Mis compras</Text>
-          <TouchableOpacity onPress={logout}>
+        <View style={[common.header, { flexDirection: "row", justifyContent: "space-between", alignItems: "center" }]}>
+          {/* IZQUIERDA */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 15 }}>
+            <Image 
+              source={require("../../../assets/logo.webp")} 
+              style={common.logo} 
+            />
+            <Text style={common.headerTitle}>Bubble</Text>
+          </View>
+          {/* DERECHA */}
+          <TouchableOpacity onPress={logout} style={{ paddingRight: 15}}>
             <Text style={common.logout}>Salir</Text>
           </TouchableOpacity>
         </View>

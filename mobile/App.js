@@ -12,7 +12,6 @@ import {
 } from "@expo-google-fonts/josefin-sans";
 import { AuthProvider } from "./src/context/AuthContext";
 import AppNavigator from "./src/navigation/AppNavigator";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -42,9 +41,9 @@ export default function App() {
   }
 
   return (
-        <AuthProvider>
-          <AppNavigator />
-        </AuthProvider>
+    <AuthProvider>
+      <AppNavigator />
+    </AuthProvider>
   );
 }
 

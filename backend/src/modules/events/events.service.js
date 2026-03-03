@@ -2,23 +2,32 @@ import { pool } from "../../config/db.js";
 
 export async function fetchEvents(query) {
   const {
-    q,
-    id_genero,
-    estado = "PUBLICADO",
-    limit = 20,
-    offset = 0,
+    q, 
+    id_genero, 
+    ciudad, 
+    estado = "PUBLICADO", 
+    limit = 20, 
+    offset = 0
   } = query;
 
   const sql = `
     SELECT
       f.id_fiesta, f.titulo, f.imagen_url,
       f.estado, f.fecha_creacion,
-      g.nombre AS genero
+      g.nombre AS genero,
+      MIN(fe.fecha_hora) AS proxima_fecha,
+      COUNT(fe.id_fecha) AS total_fechas,
+      (SELECT fe2.ciudad FROM fecha fe2 WHERE fe2.id_fiesta = f.id_fiesta ORDER BY fe2.fecha_hora ASC LIMIT 1) AS ciudad,
+      (SELECT fe2.provincia FROM fecha fe2 WHERE fe2.id_fiesta = f.id_fiesta ORDER BY fe2.fecha_hora ASC LIMIT 1) AS provincia,
+      (SELECT fe2.ubicacion FROM fecha fe2 WHERE fe2.id_fiesta = f.id_fiesta ORDER BY fe2.fecha_hora ASC LIMIT 1) AS ubicacion
     FROM fiesta f
     JOIN genero g ON g.id_genero = f.id_genero
+    JOIN fecha fe ON fe.id_fiesta = f.id_fiesta
     WHERE (:estado IS NULL OR f.estado = :estado)
       AND (:id_genero IS NULL OR f.id_genero = :id_genero)
+      AND (:ciudad IS NULL OR fe.ciudad = :ciudad)
       AND (:q IS NULL OR f.titulo LIKE CONCAT('%', :q, '%'))
+    GROUP BY f.id_fiesta, g.nombre
     ORDER BY f.fecha_creacion DESC
     LIMIT :limit OFFSET :offset
   `;
@@ -26,6 +35,7 @@ export async function fetchEvents(query) {
   const params = {
     estado: estado ?? null,
     id_genero: id_genero ? Number(id_genero) : null,
+    ciudad: ciudad ?? null,
     q: q ?? null,
     limit: Number(limit),
     offset: Number(offset),

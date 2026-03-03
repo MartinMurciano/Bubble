@@ -4,8 +4,10 @@ import {
   TextInput, ActivityIndicator, Image, Modal, ScrollView
 } from "react-native";
 import { eventsApi } from "../../api";
+import DrawerMenu from "../../components/DrawerMenu";
 import { colors, fonts, common } from "../../theme";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../../context/AuthContext";
 
 export default function HomeScreen({ navigation }) {
   const [events, setEvents] = useState([]);
@@ -17,6 +19,7 @@ export default function HomeScreen({ navigation }) {
   const [selectedGenero, setSelectedGenero] = useState(null);
   const [selectedCiudad, setSelectedCiudad] = useState(null);
   const [showCiudades, setShowCiudades] = useState(false);
+  const [showDrawer, setShowDrawer] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -71,22 +74,33 @@ export default function HomeScreen({ navigation }) {
     </TouchableOpacity>
   );
 
+  const { logout } = useAuth();
+
   return (
     <SafeAreaView style={[common.screen, { flex: 1 }]}>
       <View style={common.screen}>
         {/* Header */}
-        <View style={common.header}>
-          <Text style={common.headerTitle}>
-            <Image
-            source={require("../../../assets/logo.webp")}
-            style={common.logo}
-            /> Bubble</Text>
-            {hayFiltros && (
-            <TouchableOpacity onPress={() => { setQ(""); setSelectedGenero(null); setSelectedCiudad(null); }}>
-              <Text style={styles.clearBtn}>✕ Limpiar</Text>
-            </TouchableOpacity>
-          )}
+        <View style={[common.header, { flexDirection: "row", justifyContent: "space-between", alignItems: "center" }]}>
+          {/* IZQUIERDA */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 15 }}>
+            <Image 
+              source={require("../../../assets/logo.webp")} 
+              style={common.logo} 
+            />
+            <Text style={common.headerTitle}>Bubble</Text>
+          </View>
+          {/* DERECHA */}
+          <TouchableOpacity onPress={logout} style={{ paddingRight: 15}}>
+            <Text style={common.logout}>Salir</Text>
+          </TouchableOpacity>
         </View>
+
+        {/* Drawer */}
+        <DrawerMenu
+          visible={showDrawer}
+          onClose={() => setShowDrawer(false)}
+          navigation={navigation}
+        />
 
         {/* Buscador */}
         <TextInput
@@ -106,10 +120,10 @@ export default function HomeScreen({ navigation }) {
           style={styles.generoList}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={[common.chip, { marginRight: 8 }, selectedGenero === item.id_genero && common.chipActive]}
+              style={[common.chip, { marginRight: 8, PaddingBottom: 0}, selectedGenero === item.id_genero && common.chipActive]}
               onPress={() => setSelectedGenero(item.id_genero)}
             >
-              <Text style={[common.chipText, selectedGenero === item.id_genero && common.chipTextActive]}>
+              <Text style={[common.chipText, {fontSize: 10 }, selectedGenero === item.id_genero && common.chipTextActive]}>
                 {item.nombre}
               </Text>
             </TouchableOpacity>
@@ -214,4 +228,5 @@ const styles = StyleSheet.create({
   modalOptionActive: { backgroundColor: colors.accent },
   modalOptionText: { fontFamily: fonts.body, fontSize: 14, color: colors.text },
   modalOptionTextActive: { fontFamily: fonts.bodySemi, color: colors.primary },
+  menuBtn: { fontSize: 22, color: colors.primary, paddingHorizontal: 4 },
 });

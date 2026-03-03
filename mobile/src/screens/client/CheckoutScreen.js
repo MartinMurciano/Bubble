@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert
 } from "react-native";
-import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
+import { StripeProvider, useStripe, CardField } from "@stripe/stripe-react-native";
 import { ordersApi } from "../../api";
 import { colors, fonts, common } from "../../theme";
 
@@ -12,6 +12,7 @@ const STRIPE_PUBLIC_KEY = "pk_test_51T6PDECjpb2GzxKpbfQS5AtkrHMbjanVtprZeRauICK0
 function CheckoutForm({ items, event, navigation }) {
   const { confirmPayment } = useStripe();
   const [loading, setLoading] = useState(false);
+  const [cardComplete, setCardComplete] = useState(false);
 
   const enriched = items.map((item) => {
     let entrada = null, fecha = null;
@@ -30,6 +31,10 @@ function CheckoutForm({ items, event, navigation }) {
   const total = enriched.reduce((acc, d) => acc + d.precio * d.cantidad, 0);
 
   const submit = async () => {
+    if (!cardComplete) {
+      Alert.alert("Error", "Completá los datos de la tarjeta");
+      return;
+    }
     setLoading(true);
     try {
       // 1) Crear orden en backend
@@ -60,6 +65,7 @@ function CheckoutForm({ items, event, navigation }) {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.container}>
+
         {/* Resumen */}
         <Text style={styles.sectionTitle}>Resumen de compra</Text>
         {enriched.map((d, idx) => (
@@ -67,7 +73,7 @@ function CheckoutForm({ items, event, navigation }) {
             <Text style={styles.rowTitle}>{event?.titulo}</Text>
             <Text style={styles.rowSub}>
               {d.tipo}
-              {d.fecha_hora && ` · ${new Date(d.fecha_hora).toLocaleDateString("es-AR")}`}
+              {d.fecha_hora && ` · ${new Date(d.fecha_hora.toString().replace(" ", "T")).toLocaleDateString("es-AR")}`}
             </Text>
             <Text style={styles.rowSub}>${d.precio.toLocaleString("es-AR")} × {d.cantidad}</Text>
             <Text style={styles.rowPrice}>${(d.precio * d.cantidad).toLocaleString("es-AR")}</Text>
@@ -79,24 +85,30 @@ function CheckoutForm({ items, event, navigation }) {
           <Text style={styles.totalValue}>${total.toLocaleString("es-AR")}</Text>
         </View>
 
-        {/* Info test */}
-        <View style={styles.testCard}>
-          <Text style={styles.testTitle}>🧪 Modo test</Text>
-          <Text style={styles.testText}>
-            Usá la tarjeta <Text style={styles.testCode}>4242 4242 4242 4242</Text>{"\n"}
-            Fecha: cualquier fecha futura · CVV: cualquier número
-          </Text>
-        </View>
+        {/* Datos de tarjeta */}
+        <View style={common.card}>
+          <Text style={styles.sectionTitle}>Datos de pago</Text>
+          <CardField
+            postalCodeEnabled={false}
+            placeholders={{ number: "4242 4242 4242 4242" }}
+            cardStyle={{
+              backgroundColor: "#fff",
+              textColor: "#1a1a1a",
+              borderColor: "#e1d5e0",
+              borderWidth: 1,
+              borderRadius: 8,
+            }}
+            style={{ width: "100%", height: 50, marginBottom: 8 }}
+            onCardChange={(cardDetails) => setCardComplete(cardDetails.complete)}
+          />
 
-        <View style={styles.secureRow}>
-          <Text style={styles.secureText}>🔒 Pago seguro procesado por Stripe</Text>
         </View>
       </ScrollView>
 
       <TouchableOpacity
-        style={[common.btnPrimary, styles.payBtn, loading && { opacity: 0.7 }]}
+        style={[common.btnPrimary, styles.payBtn, (loading || !cardComplete) && { opacity: 0.6 }]}
         onPress={submit}
-        disabled={loading}
+        disabled={loading || !cardComplete}
       >
         {loading
           ? <ActivityIndicator color={colors.white} />
@@ -133,7 +145,6 @@ const styles = StyleSheet.create({
   testTitle: { fontFamily: fonts.bodySemi, color: "#2c5282", marginBottom: 4 },
   testText: { fontFamily: fonts.body, color: "#2c5282", fontSize: 13, lineHeight: 20 },
   testCode: { fontFamily: "monospace", fontWeight: "bold" },
-  secureRow: { alignItems: "center", marginBottom: 20 },
-  secureText: { fontFamily: fonts.body, color: colors.textMuted, fontSize: 13 },
+  secureText: { fontFamily: fonts.body, color: colors.textMuted, fontSize: 12, textAlign: "center" },
   payBtn: { margin: 16, backgroundColor: colors.primary },
 });

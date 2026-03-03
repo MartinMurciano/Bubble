@@ -95,9 +95,19 @@ export default function Events() {
                     )}
                     <div className="card-body">
                       <h5 className="card-title fw-semibold">{ev.titulo}</h5>
+                      {ev.proxima_fecha && (
+                        <div className="text-muted small mb-2">
+                          📅 {new Date(ev.proxima_fecha.toString().replace(" ", "T")).toLocaleDateString("es-AR", {
+                            weekday: "short", day: "2-digit", month: "short", year: "numeric"
+                          })}
+                          {ev.total_fechas > 1 && (
+                            <span className="ms-1 text-muted">y {ev.total_fechas - 1} fecha{ev.total_fechas - 1 > 1 ? "s" : ""} más</span>
+                          )}
+                        </div>
+                      )}
                       <div className="d-flex gap-2 flex-wrap">
                         {ev.genero && <span className="badge" style={{ background: "#f0ebff", color: "#6f42c1" }}>{ev.genero}</span>}
-                        {ev.ciudad && <span className="badge bg-secondary">📍 {ev.ciudad}</span>}
+                        {ev.ciudad && <span className="badge" style={{ background: "#f0ebff", color: "#6f42c1" }}>📍 {ev.ciudad}</span>}
                       </div>
                     </div>
                   </div>

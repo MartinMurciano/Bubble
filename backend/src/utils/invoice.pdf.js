@@ -135,13 +135,6 @@ export function generateInvoicePDF({ factura, detalles, usuario }) {
       .text(`Método de pago: Tarjeta`, 50, y);
 
     // ── FOOTER ────────────────────────────────────────────────────────────────
-    const footerY = doc.page.height - 60;
-    doc.moveTo(50, footerY).lineTo(545, footerY).strokeColor("#e1d5e0").stroke();
-    doc.fillColor(muted).fontSize(8).font("Helvetica")
-      .text(
-        "Muchas gracias por tu",
-        50, footerY + 10, { width: pageWidth, align: "center" }
-      );
 
     doc.end();
   });

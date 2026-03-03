@@ -89,11 +89,6 @@ export default function EventDetail() {
         <div className="d-flex align-items-start justify-content-between flex-wrap gap-2">
           <div>
             <h2 className="mb-1">{event.titulo}</h2>
-            <div className="text-muted">
-              {event.ubicacion}
-              {event.ciudad && ` · ${event.ciudad}`}
-              {event.provincia && `, ${event.provincia}`}
-            </div>
           </div>
           <span className="badge bg-secondary fs-6">{event.genero}</span>
         </div>
@@ -125,6 +120,9 @@ export default function EventDetail() {
                 minute: "2-digit",
               })}
             </span>
+            {f.ubicacion && (
+              <span className="text-muted small"> {f.ubicacion}{f.ciudad && `, ${f.ciudad}`}</span>
+            )}
           </div>
 
           <div className="card-body p-0">
