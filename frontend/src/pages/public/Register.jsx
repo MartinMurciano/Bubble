@@ -16,6 +16,9 @@ export default function Register() {
     fecha_nacimiento: "",
     telefono: "",
     id_rol: 3,
+    cuit: "",
+    razon_social: "",
+    sitio_web: "",
   });
 
   const submit = async (e) => {
@@ -177,6 +180,43 @@ export default function Register() {
                     <option value={2}>Organizador</option>
                   </select>
                 </div>
+
+                {form.id_rol === 2 && (
+                  <div className="col-12">
+                    <div className="alert alert-info py-2 small mb-2">
+                      Estos datos son opcionales pero recomendados para organizadores.
+                    </div>
+                    <div className="row g-2">
+                      <div className="col-md-6">
+                        <label className="form-label text-muted small mb-1">CUIT</label>
+                        <input
+                          className="form-control"
+                          placeholder="20-12345678-9"
+                          value={form.cuit}
+                          onChange={(e) => setForm({ ...form, cuit: e.target.value })}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label text-muted small mb-1">Razón social</label>
+                        <input
+                          className="form-control"
+                          placeholder="Eventos SRL"
+                          value={form.razon_social}
+                          onChange={(e) => setForm({ ...form, razon_social: e.target.value })}
+                        />
+                      </div>
+                      <div className="col-12">
+                        <label className="form-label text-muted small mb-1">Sitio web</label>
+                        <input
+                          className="form-control"
+                          placeholder="https://mieventos.com"
+                          value={form.sitio_web}
+                          onChange={(e) => setForm({ ...form, sitio_web: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="col-12 mt-2 pt-2">
                   <button className="buttonLogin w-100">Registrarme</button>

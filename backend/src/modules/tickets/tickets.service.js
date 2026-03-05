@@ -39,12 +39,11 @@ export async function validateTicketCode(actor, code) {
         fe.id_fecha,
         fe.fecha_hora,
 
-        te.nombre AS tipo_entrada
+        en.nombre_custom AS tipo_entrada
       FROM codigo_entrada ce
       JOIN detalle d ON d.id_detalle = ce.id_detalle
       JOIN factura fa ON fa.id_factura = d.id_factura
       JOIN entrada en ON en.id_entrada = d.id_entrada
-      JOIN tipo_entrada te ON te.id_tipo_entrada = en.id_tipo_entrada
       JOIN fecha fe ON fe.id_fecha = en.id_fecha
       JOIN fiesta fi ON fi.id_fiesta = fe.id_fiesta
       WHERE ce.codigo = :code

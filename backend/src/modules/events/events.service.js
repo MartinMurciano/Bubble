@@ -182,6 +182,12 @@ if ((p * 10) % 5 !== 0) {
     throw err;
   }
   finished = dateRows?.[0]?.fechas_pasadas > 0;
+
+  if (!finished) {
+    const err = new Error("Solo podés calificar eventos cuya fecha ya ha pasado");
+    err.statusCode = 403;
+    throw err;
+  }
 }
 
   // 2) verificar compra: usuario compró alguna entrada de ese evento

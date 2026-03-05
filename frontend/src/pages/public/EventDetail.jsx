@@ -212,7 +212,7 @@ export default function EventDetail() {
           <h4 className="mb-3">
             Calificaciones
             <span className="text-muted fs-6 ms-2">
-              ({ratings.length}) · ⭐ {(ratings.reduce((a, r) => a + r.puntaje, 0) / ratings.length).toFixed(1)}
+              ({ratings.length}) · ⭐ {(ratings.reduce((a, r) => a + Number(r.puntaje), 0) / ratings.length).toFixed(1)}
             </span>
           </h4>
           {ratings.map((r, idx) => (
