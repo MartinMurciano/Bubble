@@ -145,7 +145,7 @@ export async function placeOrder(id_usuario, payload) {
 }
 
 // ─── CONFIRMAR PAGO (llamado desde frontend después de que Stripe confirma) ──
-export async function confirmOrder(id_usuario, id_factura) {
+export async function confirmOrder(id_usuario, id_factura, billing = {}) {
   // 1) Traer factura
   const [factRows] = await pool.query(
     `SELECT id_factura, total, stripe_payment_intent_id, estado_pago, id_usuario
@@ -202,6 +202,7 @@ export async function confirmOrder(id_usuario, id_factura) {
       factura: facturaCompleta,
       detalles,
       usuario: usuarioRows[0],
+      billing,
     });
 
     await sendInvoiceEmail({

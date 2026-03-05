@@ -110,7 +110,8 @@ export default function EventDetail() {
       {event.fechas.map((f) => (
         <div className="card mb-3" key={f.id_fecha}>
           <div className="card-header bg-white d-flex align-items-center gap-2">
-            <span className="badge bg-info text-dark">
+            <span className="badge bg-info badgeDetail">
+              
               {new Date(f.fecha_hora).toLocaleString("es-AR", {
                 weekday: "long",
                 day: "2-digit",
@@ -135,7 +136,7 @@ export default function EventDetail() {
                   <div className="flex-grow-1">
                     <div className="fw-semibold">{en.tipo}</div>
                     <div className="text-muted small">
-                      ${Number(en.precio).toLocaleString("es-AR")} · Disponibles: {en.stock_disponible}
+                      ${Number(en.precio).toLocaleString("es-AR")} 
                     </div>
                   </div>
 
@@ -194,7 +195,11 @@ export default function EventDetail() {
           }}
         >
           <button
-            className="btn btn-success w-100 py-3 fs-5 shadow"
+            style={{
+              backgroundColor: '#6f42c1',
+              color: "white",
+            }}
+            className="btn  w-100 py-3 fs-5 shadow"
             onClick={goCheckout}
           >
             Continuar · {totalQty} entrada{totalQty > 1 ? "s" : ""} · ${totalPrice.toLocaleString("es-AR")}

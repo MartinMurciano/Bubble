@@ -1,0 +1,20 @@
+/************Panel Org*********/
+.btnCreateEvent{
+    background-Color: #6f42c1;
+    color: white;
+    border: 0;
+}
+
+.btnCreateEvent:hover{
+    background-Color: #6f42c1;
+    color: white;
+    border: 0;
+    cursor: pointer;
+}
+
+.btnPanel{
+    background-color:#fff1fd !important;
+    color: black;
+    border: 1px solid #e1d5e0 !important;
+    border-radius: 10px;
+}

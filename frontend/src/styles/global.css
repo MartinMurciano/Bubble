@@ -138,3 +138,12 @@ footer{
     color: black;
 }
 
+
+
+/*-------Event Detail----------*/
+
+.badgeDetail{
+    background-color: #f0ebff !important;
+    color: #6f42c1;
+}
+

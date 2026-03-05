@@ -9,6 +9,7 @@ import "./styles/cards.css";
 import "./styles/forms.css";
 import "./styles/admin.css";
 import "./styles/client.css";
+import "./styles/organizer.css"
 
 
 

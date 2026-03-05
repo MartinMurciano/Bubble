@@ -7,11 +7,11 @@ export const createOrder = asyncHandler(async (req, res) => {
   res.status(201).json({ ok: true, ...data });
 });
 
-// POST /api/orders/:id/confirm — llamado después de que Stripe confirma el pago
 export const confirmPayment = asyncHandler(async (req, res) => {
   const id_usuario = req.user.id_usuario;
   const id_factura = Number(req.params.id);
-  const data = await confirmOrder(id_usuario, id_factura);
+  const billing = req.body.billing || {};
+  const data = await confirmOrder(id_usuario, id_factura, billing);
   res.json({ ok: true, ...data });
 });
 

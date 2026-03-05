@@ -79,7 +79,7 @@ export default function OrganizerEventReport() {
                     {rep.breakdown.map((row, idx) => (
                       <tr key={idx}>
                         <td>{new Date(row.fecha_hora).toLocaleString("es-AR")}</td>
-                        <td>{row.tipo_entrada}</td>
+                        <td>{row.tipo}</td>
                         <td className="text-end">{row.stock_total}</td>
                         <td className="text-end">{row.vendidas}</td>
                         <td className="text-end">{row.stock_disponible}</td>

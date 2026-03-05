@@ -18,7 +18,6 @@ const CARD_STYLE = {
   },
 };
 
-// ─── FORMULARIO INTERNO ───────────────────────────────────────────────────────
 function CheckoutForm({ items, event }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -27,8 +26,11 @@ function CheckoutForm({ items, event }) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [cardComplete, setCardComplete] = useState(false);
+  const [billing, setBilling] = useState({ nombre: "", apellido: "", dni: "", direccion: "" });
 
-  // Calcular total
+  const setBill = (key, val) => setBilling((b) => ({ ...b, [key]: val }));
+  const billingOk = billing.nombre && billing.apellido && billing.dni && billing.direccion;
+
   const enriched = items.map((item) => {
     let entrada = null, fecha = null;
     for (const f of event?.fechas || []) {
@@ -47,27 +49,21 @@ function CheckoutForm({ items, event }) {
   const submit = async (e) => {
     e.preventDefault();
     if (!stripe || !elements) return;
+    if (!billingOk) { setErr("Completa todos los datos de facturacion"); return; }
     setErr("");
     setLoading(true);
 
     try {
-      // 1) Crear orden en backend → recibe clientSecret + id_factura
       const { clientSecret, id_factura } = await ordersApi.create(items);
 
-      // 2) Confirmar pago con Stripe
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: { card: elements.getElement(CardElement) },
       });
 
-      if (error) {
-        setErr(error.message);
-        setLoading(false);
-        return;
-      }
+      if (error) { setErr(error.message); setLoading(false); return; }
 
       if (paymentIntent.status === "succeeded") {
-        // 3) Notificar al backend que el pago fue exitoso
-        await ordersApi.confirm(id_factura);
+        await ordersApi.confirm(id_factura, billing);
         nav(`/orders/${id_factura}?pagado=1`);
       }
     } catch (e2) {
@@ -95,7 +91,7 @@ function CheckoutForm({ items, event }) {
                     </div>
                   </td>
                   <td className="text-end align-middle">
-                    ${d.precio.toLocaleString("es-AR")} × {d.cantidad}
+                    ${d.precio.toLocaleString("es-AR")} x {d.cantidad}
                   </td>
                   <td className="text-end align-middle fw-semibold">
                     ${(d.precio * d.cantidad).toLocaleString("es-AR")}
@@ -115,19 +111,38 @@ function CheckoutForm({ items, event }) {
         </div>
       </div>
 
+      {/* Datos de facturacion */}
+      <div className="card mb-3">
+        <div className="card-header fw-semibold">Datos de facturacion</div>
+        <div className="card-body">
+          <div className="row g-2">
+            <div className="col-6">
+              <label className="form-label text-muted small">Nombre *</label>
+              <input className="form-control" value={billing.nombre} onChange={(e) => setBill("nombre", e.target.value)} placeholder="Juan" />
+            </div>
+            <div className="col-6">
+              <label className="form-label text-muted small">Apellido *</label>
+              <input className="form-control" value={billing.apellido} onChange={(e) => setBill("apellido", e.target.value)} placeholder="Perez" />
+            </div>
+            <div className="col-6">
+              <label className="form-label text-muted small">DNI *</label>
+              <input className="form-control" value={billing.dni} onChange={(e) => setBill("dni", e.target.value)} placeholder="12345678" maxLength={10} />
+            </div>
+            <div className="col-6">
+              <label className="form-label text-muted small">Direccion *</label>
+              <input className="form-control" value={billing.direccion} onChange={(e) => setBill("direccion", e.target.value)} placeholder="Av. Corrientes 1234" />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Datos de tarjeta */}
       <div className="card mb-3">
         <div className="card-header fw-semibold">Datos de pago</div>
         <div className="card-body">
-          <label className="form-label text-muted small">Número de tarjeta</label>
-          <div
-            className="form-control"
-            style={{ padding: "12px 14px", borderColor: "#e1d5e0" }}
-          >
-            <CardElement
-              options={CARD_STYLE}
-              onChange={(e) => setCardComplete(e.complete)}
-            />
+          <label className="form-label text-muted small">Numero de tarjeta</label>
+          <div className="form-control" style={{ padding: "12px 14px", borderColor: "#e1d5e0" }}>
+            <CardElement options={CARD_STYLE} onChange={(e) => setCardComplete(e.complete)} />
           </div>
         </div>
       </div>
@@ -137,7 +152,7 @@ function CheckoutForm({ items, event }) {
       <button
         className="btn w-100 fw-bold py-3"
         style={{ background: "#6f42c1", color: "#fff", borderRadius: 10, fontSize: 16 }}
-        disabled={loading || !cardComplete || !stripe}
+        disabled={loading || !cardComplete || !billingOk || !stripe}
       >
         {loading
           ? <><span className="spinner-border spinner-border-sm me-2" />Procesando pago...</>
@@ -148,18 +163,12 @@ function CheckoutForm({ items, event }) {
   );
 }
 
-// ─── WRAPPER CON ELEMENTS ─────────────────────────────────────────────────────
 export default function Checkout() {
   const nav = useNavigate();
-
-  // Lee los datos desde sessionStorage (así los pasa EventDetail)
   const items = JSON.parse(sessionStorage.getItem("checkout_items") || "null");
   const event = JSON.parse(sessionStorage.getItem("checkout_event") || "null");
 
-  useEffect(() => {
-    if (!items || !event) nav("/");
-  }, []);
-
+  useEffect(() => { if (!items || !event) nav("/"); }, []);
   if (!items || !event) return null;
 
   return (

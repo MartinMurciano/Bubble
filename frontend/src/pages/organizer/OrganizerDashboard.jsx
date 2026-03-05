@@ -24,7 +24,7 @@ export default function OrganizerDashboard() {
     <div className="container py-4">
       <div className="d-flex align-items-center justify-content-between mb-4">
         <h2 className="m-0">Panel Organizador</h2>
-        <Link className="btn btn-primary" to="/organizer/events/new">
+        <Link className="btn btnCreateEvent" to="/organizer/events/new">
           + Crear evento
         </Link>
       </div>
@@ -57,16 +57,16 @@ export default function OrganizerDashboard() {
 
               <div className="card-footer bg-white border-0 pt-0 d-flex gap-2">
                 <Link
-                  className="btn btn-outline-secondary btn-sm flex-fill"
+                  className="btn  btn-sm flex-fill btnPanel"
                   to={`/organizer/events/${e.id_fiesta}/edit`}
                 >
-                  ✏️ Editar
+                  Editar
                 </Link>
                 <Link
-                  className="btn btn-outline-primary btn-sm flex-fill"
+                  className="btn btn-sm flex-fill btnPanel"
                   to={`/organizer/events/${e.id_fiesta}/report`}
                 >
-                  📊 Reporte
+                  Ver reporte
                 </Link>
               </div>
             </div>
