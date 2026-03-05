@@ -19,9 +19,7 @@ export default function Home() {
 
         setDestacados(top);
         // Cards: hasta 6, excluyendo los del carrusel
-        const topIds = new Set(top.map((e) => e.id_fiesta));
-        const remaining = all.filter((e) => !topIds.has(e.id_fiesta));
-        setEvents(remaining.length > 0 ? remaining.slice(0, 6) : all.slice(0, 6));
+        setEvents(all.slice(0, 6));
       } catch (e) {
         console.error(e);
       } finally {

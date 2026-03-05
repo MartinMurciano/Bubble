@@ -11,6 +11,7 @@ import Login from "./pages/public/Login.jsx";
 import Register from "./pages/public/Register.jsx";
 import VerifyEmail from "./pages/public/VerifyEmail.jsx";
 import UnlockAccount from "./pages/public/UnlockAccount.jsx";
+import About from "./pages/public/About.jsx";
 
 // Cliente
 import Checkout from "./pages/client/Checkout.jsx";
@@ -44,6 +45,8 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/unlock" element={<UnlockAccount />} />
+            <Route path="/about" element={<About />} />
+            
 
             {/* Cliente */}
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
