@@ -165,17 +165,23 @@ if ((p * 10) % 5 !== 0) {
 
   if (!finished) {
   const [dateRows] = await pool.query(
-    `SELECT MAX(fecha_hora) < NOW() AS finalizado, COUNT(*) AS total
-     FROM fecha
-     WHERE id_fiesta = :id_fiesta`,
-    { id_fiesta }
+    `SELECT 
+      COUNT(*) AS total,
+      SUM(fe.fecha_hora < NOW()) AS fechas_pasadas
+    FROM fecha fe
+    JOIN entrada e ON e.id_fecha = fe.id_fecha
+    JOIN detalle d ON d.id_entrada = e.id_entrada
+    JOIN factura fa ON fa.id_factura = d.id_factura
+    WHERE fe.id_fiesta = :id_fiesta
+      AND fa.id_usuario = :id_usuario`,
+    { id_fiesta, id_usuario }
   );
   if (!dateRows?.[0]?.total) {
     const err = new Error("El evento no tiene fechas configuradas");
     err.statusCode = 409;
     throw err;
   }
-  finished = dateRows?.[0]?.finalizado === 1;
+  finished = dateRows?.[0]?.fechas_pasadas > 0;
 }
 
   // 2) verificar compra: usuario compró alguna entrada de ese evento
