@@ -18,3 +18,26 @@
     border: 1px solid #e1d5e0 !important;
     border-radius: 10px;
 }
+
+.btnAddFecha {
+    background-color:#fff1fd !important;
+    color: black;
+    border: 1px solid #e1d5e0 !important;
+}
+
+.btnGuardaEntrada{
+    background-color:#fff1fd !important;
+    color: black;
+    border: 1px solid #e1d5e0 !important;
+}
+
+.btnGuardarCambios{
+    background-color:#fff1fd !important;
+    color: black;
+    border: 1px solid #e1d5e0 !important;
+}
+
+.btnAddFechas{
+    background-Color: #6f42c1 !important;
+    color: white !important
+}

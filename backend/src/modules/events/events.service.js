@@ -28,6 +28,7 @@ export async function fetchEvents(query) {
       AND (:ciudad IS NULL OR fe.ciudad = :ciudad)
       AND (:q IS NULL OR f.titulo LIKE CONCAT('%', :q, '%'))
     GROUP BY f.id_fiesta, g.nombre
+    HAVING MAX(fe.fecha_hora) > NOW()
     ORDER BY f.fecha_creacion DESC
     LIMIT :limit OFFSET :offset
   `;
@@ -236,11 +237,13 @@ export async function fetchPopularEvents() {
       COUNT(c.id_calificacion) AS cantidad
     FROM fiesta f
     JOIN calificacion c ON c.id_fiesta = f.id_fiesta
-    WHERE f.estado IN ('PUBLICADO','FINALIZADO')
+    JOIN fecha fe ON fe.id_fiesta = f.id_fiesta
+    WHERE f.estado = 'PUBLICADO'
     GROUP BY f.id_fiesta
     HAVING COUNT(c.id_calificacion) > 0
+      AND MAX(fe.fecha_hora) > NOW()
     ORDER BY promedio DESC, cantidad DESC
-    LIMIT 10
+    LIMIT 3
     `
   );
   return rows;

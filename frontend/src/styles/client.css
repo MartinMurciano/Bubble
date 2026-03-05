@@ -11,3 +11,29 @@
     font-size: 16px;
     cursor: pointer;
 }
+
+/*.---------Calificar ----*/
+
+.buttonCalificate{
+    width: 100%;
+    padding: 12px;
+    background-color:#fff1fd !important;
+    color: black;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 1em;
+    border: 1px solid #e1d5e0 !important;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.buttonVerEventos{
+    padding: 12px;
+    background-color:#fff1fd !important;
+    color: black;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 1em;
+    border: 1px solid #e1d5e0 !important;
+}

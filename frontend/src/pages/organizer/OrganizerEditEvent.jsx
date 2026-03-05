@@ -252,7 +252,7 @@ export default function OrganizerEditEvent() {
                   />
                 </div>
                 <div className="col-12 mt-1">
-                  <button className="btn btn-primary" disabled={savingEvent}>
+                  <button className="btn btnAddFechas" disabled={savingEvent}>
                     {savingEvent ? "Guardando..." : "Guardar cambios"}
                   </button>
                 </div>
@@ -266,7 +266,7 @@ export default function OrganizerEditEvent() {
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h5 className="mb-0">Fechas y entradas</h5>
                 <button
-                  className="btn btn-sm btn-outline-primary"
+                  className="btn btn-sm btnAddFechas"
                   onClick={() => setShowAddDate((v) => !v)}
                 >
                   {showAddDate ? "Cancelar" : "+ Agregar fecha"}
@@ -317,7 +317,7 @@ export default function OrganizerEditEvent() {
                         onChange={(e) => setNewDate({ ...newDate, provincia: e.target.value })} />
                     </div>
                     <div className="col-12">
-                      <button className="btn btn-primary" disabled={addingDate}>
+                      <button className="btn btnAddFecha" disabled={addingDate}>
                         {addingDate ? "Guardando..." : "Agregar fecha"}
                       </button>
                     </div>
@@ -339,7 +339,7 @@ export default function OrganizerEditEvent() {
                       })}
                     </div>
                     <button
-                      className="btn btn-sm btn-outline-secondary"
+                      className="btn btn-sm btnAddFecha"
                       onClick={() => {
                         setAddTicketFecha(addTicketFecha === fecha.id_fecha ? null : fecha.id_fecha);
                         setNewTickets([emptyTicket()]);
@@ -403,7 +403,7 @@ export default function OrganizerEditEvent() {
                           onClick={() => setNewTickets([...newTickets, emptyTicket()])}>
                           + Otro tipo
                         </button>
-                        <button type="submit" className="btn btn-sm btn-primary" disabled={addingTickets}>
+                        <button type="submit" className="btn btn-sm btnAddFechas" disabled={addingTickets}>
                           {addingTickets ? "Guardando..." : "Guardar entradas"}
                         </button>
                       </div>
@@ -448,7 +448,7 @@ export default function OrganizerEditEvent() {
                             </select>
                           </div>
                           <div className="col-6 col-sm-2">
-                            <button className="btn btn-primary btn-sm w-100"
+                            <button className="btn btnGuardaEntrada btn-sm w-100"
                               disabled={savingTicket === en.id_entrada}
                               onClick={() => saveTicket(en.id_entrada)}>
                               {savingTicket === en.id_entrada ? "..." : "Guardar"}

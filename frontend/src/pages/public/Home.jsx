@@ -16,16 +16,12 @@ export default function Home() {
         ]);
         // Top 3 destacados; si no hay suficientes, completar con los primeros del listado
         const top = popular.slice(0, 3);
-        if (top.length < 3) {
-          const extras = all
-            .filter((e) => !top.find((d) => d.id_fiesta === e.id_fiesta))
-            .slice(0, 3 - top.length);
-          top.push(...extras);
-        }
+
         setDestacados(top);
         // Cards: hasta 6, excluyendo los del carrusel
         const topIds = new Set(top.map((e) => e.id_fiesta));
-        setEvents(all.filter((e) => !topIds.has(e.id_fiesta)).slice(0, 6));
+        const remaining = all.filter((e) => !topIds.has(e.id_fiesta));
+        setEvents(remaining.length > 0 ? remaining.slice(0, 6) : all.slice(0, 6));
       } catch (e) {
         console.error(e);
       } finally {

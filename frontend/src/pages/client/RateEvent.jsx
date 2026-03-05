@@ -40,10 +40,10 @@ export default function RateEvent() {
             <h3 className="mb-2">¡Gracias por tu calificación!</h3>
             <p className="text-muted mb-4">Tu opinión ayuda a otros usuarios a encontrar los mejores eventos.</p>
             <div className="d-flex gap-2 justify-content-center">
-              <Link className="btn btn-outline-secondary" to="/orders">
+              <Link className="btn buttonVerEventos" to="/orders">
                 Mis compras
               </Link>
-              <Link className="btn btn-primary" to="/">
+              <Link className="btn  buttonVerEventos" to="/">
                 Ver eventos
               </Link>
             </div>
@@ -113,7 +113,7 @@ export default function RateEvent() {
                   </div>
                 </div>
 
-                <button className="btn btn-primary" disabled={loading || !puntaje}>
+                <button className="btn buttonCalificate" disabled={loading || !puntaje}>
                   {loading ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" />

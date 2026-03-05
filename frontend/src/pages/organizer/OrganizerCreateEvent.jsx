@@ -185,7 +185,7 @@ export default function OrganizerCreateEvent() {
             <div className="card-body">
               <div className="d-flex align-items-center justify-content-between mb-3">
                 <h5 className="mb-0">Tipos de entrada</h5>
-                <button type="button" className="btn btn-outline-primary btn-sm" onClick={addTicketRow}>
+                <button type="button" className="btn btnGuardarCambios btn-sm" onClick={addTicketRow}>
                   + Agregar tipo
                 </button>
               </div>
@@ -239,7 +239,7 @@ export default function OrganizerCreateEvent() {
         </div>
 
         <div className="col-12">
-          <button className="btn btn-success w-100" disabled={busy}>
+          <button className="btn btnAddFechas w-100" disabled={busy}>
             {busy ? "Creando..." : "Crear y publicar evento"}
           </button>
         </div>
